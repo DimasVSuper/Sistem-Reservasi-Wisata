@@ -166,7 +166,7 @@
     <div class="container">
         <div class="welcome-card">
             <h2>Selamat Datang, {{ auth()->user()->username }}! 👋</h2>
-            <p>Anda login sebagai Customer. Kelola reservasi wisata Anda di sini.</p>
+            <p>Kelola reservasi wisata Anda di sini.</p>
         </div>
         
         <div class="user-info">
