@@ -115,11 +115,11 @@
                             <td>Rp {{ number_format($res->total_price, 0, ',', '.') }}</td>
                             <td>
                                 @if($res->status === 'pending')
-                                    <span class="badge bg-warning">Pending</span>
+                                    <span class="badge bg-warning">⏳ Pending</span>
                                 @elseif($res->status === 'confirmed')
-                                    <span class="badge bg-success">Terkonfirmasi</span>
+                                    <span class="badge bg-success">✓ Terkonfirmasi</span>
                                 @else
-                                    <span class="badge bg-danger">Dibatalkan</span>
+                                    <span class="badge bg-danger">✗ Dibatalkan</span>
                                 @endif
                             </td>
                             <td>

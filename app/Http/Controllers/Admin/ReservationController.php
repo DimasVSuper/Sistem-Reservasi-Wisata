@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\Destination;
+use App\Models\StatusHistory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReservationController extends Controller
 {
@@ -71,7 +73,16 @@ class ReservationController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        Reservation::create($validated);
+        $reservation = Reservation::create($validated);
+
+        // Log initial status
+        StatusHistory::create([
+            'reservation_id' => $reservation->id,
+            'old_status' => null,
+            'new_status' => $validated['status'],
+            'changed_by' => Auth::user()->email,
+            'notes' => 'Reservasi dibuat',
+        ]);
 
         return redirect()->route('admin.reservations.index')
             ->with('success', 'Reservasi berhasil ditambahkan!');
@@ -79,7 +90,8 @@ class ReservationController extends Controller
 
     public function show(Reservation $reservation)
     {
-        return view('admin.reservations.show', compact('reservation'));
+        $statusHistories = $reservation->statusHistories;
+        return view('admin.reservations.show', compact('reservation', 'statusHistories'));
     }
 
     public function edit(Reservation $reservation)
@@ -102,7 +114,19 @@ class ReservationController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        $oldStatus = $reservation->status;
         $reservation->update($validated);
+
+        // Log status change
+        if ($oldStatus !== $validated['status']) {
+            StatusHistory::create([
+                'reservation_id' => $reservation->id,
+                'old_status' => $oldStatus,
+                'new_status' => $validated['status'],
+                'changed_by' => Auth::user()->email,
+                'notes' => $validated['notes'] ?? null,
+            ]);
+        }
 
         return redirect()->route('admin.reservations.index')
             ->with('success', 'Reservasi berhasil diperbarui!');
@@ -114,5 +138,79 @@ class ReservationController extends Controller
 
         return redirect()->route('admin.reservations.index')
             ->with('success', 'Reservasi berhasil dihapus!');
+    }
+
+    /**
+     * Change status dengan reason
+     */
+    public function changeStatus(Request $request, Reservation $reservation)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:pending,confirmed,cancelled',
+            'reason' => 'nullable|string',
+        ]);
+
+        $oldStatus = $reservation->status;
+        $reservation->status = $validated['status'];
+        $reservation->save();
+
+        // Log status change
+        StatusHistory::create([
+            'reservation_id' => $reservation->id,
+            'old_status' => $oldStatus,
+            'new_status' => $validated['status'],
+            'reason' => $validated['reason'] ?? null,
+            'changed_by' => Auth::user()->email,
+        ]);
+
+        return back()->with('success', 'Status berhasil diubah menjadi ' . strtoupper($validated['status']));
+    }
+
+    /**
+     * Bulk status update
+     */
+    public function bulkStatusUpdate(Request $request)
+    {
+        $validated = $request->validate([
+            'reservation_ids' => 'required|array',
+            'reservation_ids.*' => 'integer|exists:reservations,id',
+            'status' => 'required|in:pending,confirmed,cancelled',
+            'reason' => 'nullable|string',
+        ]);
+
+        $changedBy = Auth::user()->email;
+        $count = 0;
+
+        foreach ($validated['reservation_ids'] as $id) {
+            $reservation = Reservation::find($id);
+            $oldStatus = $reservation->status;
+
+            if ($oldStatus !== $validated['status']) {
+                $reservation->status = $validated['status'];
+                $reservation->save();
+
+                StatusHistory::create([
+                    'reservation_id' => $id,
+                    'old_status' => $oldStatus,
+                    'new_status' => $validated['status'],
+                    'reason' => $validated['reason'] ?? null,
+                    'changed_by' => $changedBy,
+                ]);
+
+                $count++;
+            }
+        }
+
+        return redirect()->route('admin.reservations.index')
+            ->with('success', "Status $count reservasi berhasil diubah!");
+    }
+
+    /**
+     * View status history
+     */
+    public function statusHistory(Reservation $reservation)
+    {
+        $histories = $reservation->statusHistories;
+        return view('admin.reservations.status-history', compact('reservation', 'histories'));
     }
 }

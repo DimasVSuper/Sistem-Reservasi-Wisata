@@ -47,6 +47,11 @@ Route::middleware(['auth'])->group(function () {
         // Destinations CRUD
         Route::resource('destinations', DestinationController::class);
 
+        // Status Management - HARUS SEBELUM resource()
+        Route::post('/reservations/{reservation}/change-status', [ReservationController::class, 'changeStatus'])->name('reservations.changeStatus');
+        Route::post('/reservations/bulk-status-update', [ReservationController::class, 'bulkStatusUpdate'])->name('reservations.bulkStatusUpdate');
+        Route::get('/reservations/{reservation}/status-history', [ReservationController::class, 'statusHistory'])->name('reservations.statusHistory');
+
         // Reservations CRUD
         Route::resource('reservations', ReservationController::class);
     });
