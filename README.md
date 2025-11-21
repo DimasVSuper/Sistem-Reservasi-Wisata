@@ -12,18 +12,18 @@
 
 ## 📋 Daftar Isi
 
-- [🎯 Tentang Proyek](#tentang-proyek)
-- [👥 Tim Pengembang](#tim-pengembang)
-- [🚀 Fitur Utama](#fitur-utama)
-- [🛠️ Tech Stack](#tech-stack)
-- [⚙️ Instalasi & Setup](#instalasi--setup)
-- [🔑 Akun Test](#akun-test)
-- [📊 Database Schema](#database-schema)
-- [🗂️ Struktur Project](#struktur-project)
-- [📚 API Routes](#api-routes)
-- [🎨 Fitur Dashboard](#fitur-dashboard)
-- [🔄 Status Management](#status-management)
-- [📝 Dokumentasi Lengkap](#dokumentasi-lengkap)
+- 🎯 Tentang Proyek
+- 👥 Tim Pengembang
+- 🚀 Fitur Utama
+- 🛠️ Tech Stack
+- ⚙️ Instalasi & Setup
+- 🔑 Akun Test
+- 📊 Database Schema
+- 🗂️ Struktur Project
+- 📚 API Routes
+- 🎨 Fitur Dashboard
+- 🔄 Status Management
+- 📝 Dokumentasi Lengkap
 
 ---
 
