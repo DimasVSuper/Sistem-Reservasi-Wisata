@@ -372,7 +372,7 @@
                         <i class="bi bi-box-arrow-in-right"></i> Login Sekarang
                     </a>
                 @endif
-                <a href="#features" class="btn-hero" style="background: transparent; border-color: white;">
+                <a href="#features" class="btn-hero" style="background: transparan; border-color: white;">
                     <i class="bi bi-arrow-down"></i> Pelajari Lebih Lanjut
                 </a>
             </div>
