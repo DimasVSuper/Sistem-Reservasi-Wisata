@@ -9,25 +9,33 @@ use Illuminate\Support\Facades\Hash;
 class UserSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Seed default admin users for the application.
+     * 
+     * Creates 2 admin users with default credentials for testing.
+     * For production: change passwords and credentials before deployment.
+     *
+     * @return void
      */
     public function run(): void
     {
-        // Buat admin user
+        // ===== ADMIN USER #1 =====
+        // Default admin user for development/testing
         Users::create([
-            'username' => 'Dimas',
-            'email' => 'dimas@wisata.com',
-            'password' => Hash::make('admin123'),
-            'No_Handphone' => '081234567890',
-            'role' => 'admin',
+            'username' => 'Dimas',                          // Username for login
+            'email' => 'dimas@wisata.com',                 // Email identifier
+            'password' => Hash::make('admin123'),          // Hashed password (Hash::make)
+            'No_Handphone' => '081234567890',              // Phone number (Indonesian format)
+            'role' => 'admin',                             // Admin role for authorization
         ]);
 
+        // ===== ADMIN USER #2 =====
+        // Secondary admin user for testing multi-user scenarios
         Users::create([
-            'Username' => 'Iwan',
-            'email' => 'iwan@wisata.com',
-            'password' => Hash::make('admin123'),
-            'No_Handphone' => '089876543210',
-            'role' => 'admin',
+            'username' => 'Iwan',                          // Username for login
+            'email' => 'iwan@wisata.com',                  // Email identifier
+            'password' => Hash::make('admin123'),          // Hashed password (Hash::make)
+            'No_Handphone' => '089876543210',              // Phone number (Indonesian format)
+            'role' => 'admin',                             // Admin role for authorization
         ]);
     }
 }
