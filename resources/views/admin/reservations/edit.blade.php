@@ -4,30 +4,54 @@
 @section('page-title', 'Edit Reservasi')
 
 @section('content')
+
+<!-- ===== FORM CONTAINER ===== -->
 <div class="form-container">
-    <form action="{{ route('admin.reservations.update', $reservation) }}" method="POST">
+    <form 
+        action="{{ route('admin.reservations.update', $reservation) }}" 
+        method="POST">
         @csrf
         @method('PUT')
 
-        <h5 class="mb-4">Data Customer</h5>
+        <!-- ===== CUSTOMER DATA SECTION ===== -->
+        <h5 class="mb-4">
+            <i class="bi bi-person-circle"></i> Data Customer
+        </h5>
 
+        <!-- Customer Name & Email -->
         <div class="row">
+            <!-- Name Field -->
             <div class="col-md-6">
                 <div class="form-group mb-3">
-                    <label for="customer_name">Nama Customer *</label>
-                    <input type="text" class="form-control @error('customer_name') is-invalid @enderror" 
-                        id="customer_name" name="customer_name" value="{{ old('customer_name', $reservation->customer_name) }}" required>
+                    <label for="customer_name">
+                        Nama Customer <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control @error('customer_name') is-invalid @enderror" 
+                        id="customer_name" 
+                        name="customer_name" 
+                        value="{{ old('customer_name', $reservation->customer_name) }}" 
+                        required>
                     @error('customer_name')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
 
+            <!-- Email Field -->
             <div class="col-md-6">
                 <div class="form-group mb-3">
-                    <label for="customer_email">Email *</label>
-                    <input type="email" class="form-control @error('customer_email') is-invalid @enderror" 
-                        id="customer_email" name="customer_email" value="{{ old('customer_email', $reservation->customer_email) }}" required>
+                    <label for="customer_email">
+                        Email <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        class="form-control @error('customer_email') is-invalid @enderror" 
+                        id="customer_email" 
+                        name="customer_email" 
+                        value="{{ old('customer_email', $reservation->customer_email) }}" 
+                        required>
                     @error('customer_email')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -35,27 +59,49 @@
             </div>
         </div>
 
+        <!-- Phone Field -->
         <div class="form-group mb-4">
-            <label for="customer_phone">Nomor Telepon *</label>
-            <input type="tel" class="form-control @error('customer_phone') is-invalid @enderror" 
-                id="customer_phone" name="customer_phone" value="{{ old('customer_phone', $reservation->customer_phone) }}" required>
+            <label for="customer_phone">
+                Nomor Telepon <span class="text-danger">*</span>
+            </label>
+            <input 
+                type="tel" 
+                class="form-control @error('customer_phone') is-invalid @enderror" 
+                id="customer_phone" 
+                name="customer_phone" 
+                value="{{ old('customer_phone', $reservation->customer_phone) }}" 
+                required>
             @error('customer_phone')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
 
         <hr>
-        <h5 class="mb-4">Data Reservasi</h5>
 
+        <!-- ===== RESERVATION DATA SECTION ===== -->
+        <h5 class="mb-4">
+            <i class="bi bi-calendar-check"></i> Data Reservasi
+        </h5>
+
+        <!-- Destination & Date -->
         <div class="row">
+            <!-- Destination Field -->
             <div class="col-md-6">
                 <div class="form-group mb-3">
-                    <label for="destination_id">Destinasi *</label>
-                    <select class="form-select @error('destination_id') is-invalid @enderror" 
-                        id="destination_id" name="destination_id" required onchange="updatePrice()">
+                    <label for="destination_id">
+                        Destinasi <span class="text-danger">*</span>
+                    </label>
+                    <select 
+                        class="form-select @error('destination_id') is-invalid @enderror" 
+                        id="destination_id" 
+                        name="destination_id" 
+                        required 
+                        onchange="updatePrice()">
                         <option value="">Pilih Destinasi</option>
                         @foreach($destinations as $dest)
-                            <option value="{{ $dest->id }}" data-price="{{ $dest->price }}" 
+                            <option 
+                                value="{{ $dest->id }}" 
+                                data-price="{{ $dest->price }}" 
                                 @if(old('destination_id', $reservation->destination_id) == $dest->id) selected @endif>
                                 {{ $dest->name }} - Rp {{ number_format($dest->price, 0, ',', '.') }}
                             </option>
@@ -67,11 +113,19 @@
                 </div>
             </div>
 
+            <!-- Date Field -->
             <div class="col-md-6">
                 <div class="form-group mb-3">
-                    <label for="reservation_date">Tanggal Reservasi *</label>
-                    <input type="date" class="form-control @error('reservation_date') is-invalid @enderror" 
-                        id="reservation_date" name="reservation_date" value="{{ old('reservation_date', $reservation->reservation_date->format('Y-m-d')) }}" required>
+                    <label for="reservation_date">
+                        Tanggal Reservasi <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                        type="date" 
+                        class="form-control @error('reservation_date') is-invalid @enderror" 
+                        id="reservation_date" 
+                        name="reservation_date" 
+                        value="{{ old('reservation_date', $reservation->reservation_date->format('Y-m-d')) }}" 
+                        required>
                     @error('reservation_date')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -79,23 +133,44 @@
             </div>
         </div>
 
+        <!-- Quantity & Price -->
         <div class="row">
+            <!-- Quantity Field -->
             <div class="col-md-6">
                 <div class="form-group mb-3">
-                    <label for="quantity">Jumlah Orang *</label>
-                    <input type="number" class="form-control @error('quantity') is-invalid @enderror" 
-                        id="quantity" name="quantity" value="{{ old('quantity', $reservation->quantity) }}" min="1" required onchange="updatePrice()">
+                    <label for="quantity">
+                        Jumlah Orang <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        class="form-control @error('quantity') is-invalid @enderror" 
+                        id="quantity" 
+                        name="quantity" 
+                        value="{{ old('quantity', $reservation->quantity) }}" 
+                        min="1" 
+                        required 
+                        onchange="updatePrice()">
                     @error('quantity')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
 
+            <!-- Total Price Field -->
             <div class="col-md-6">
                 <div class="form-group mb-3">
-                    <label for="total_price">Total Harga (Rp) *</label>
-                    <input type="number" class="form-control @error('total_price') is-invalid @enderror" 
-                        id="total_price" name="total_price" value="{{ old('total_price', $reservation->total_price) }}" step="0.01" required readonly>
+                    <label for="total_price">
+                        Total Harga (Rp) <span class="text-danger">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        class="form-control @error('total_price') is-invalid @enderror" 
+                        id="total_price" 
+                        name="total_price" 
+                        value="{{ old('total_price', $reservation->total_price) }}" 
+                        step="0.01" 
+                        required 
+                        readonly>
                     @error('total_price')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -103,15 +178,33 @@
             </div>
         </div>
 
+        <!-- Status Field -->
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group mb-3">
-                    <label for="status">Status *</label>
-                    <select class="form-select @error('status') is-invalid @enderror" 
-                        id="status" name="status" required>
-                        <option value="pending" @if(old('status', $reservation->status) === 'pending') selected @endif>Pending</option>
-                        <option value="confirmed" @if(old('status', $reservation->status) === 'confirmed') selected @endif>Terkonfirmasi</option>
-                        <option value="cancelled" @if(old('status', $reservation->status) === 'cancelled') selected @endif>Dibatalkan</option>
+                    <label for="status">
+                        Status <span class="text-danger">*</span>
+                    </label>
+                    <select 
+                        class="form-select @error('status') is-invalid @enderror" 
+                        id="status" 
+                        name="status" 
+                        required>
+                        <option 
+                            value="pending" 
+                            @if(old('status', $reservation->status) === 'pending') selected @endif>
+                            ⏳ Pending
+                        </option>
+                        <option 
+                            value="confirmed" 
+                            @if(old('status', $reservation->status) === 'confirmed') selected @endif>
+                            ✓ Terkonfirmasi
+                        </option>
+                        <option 
+                            value="cancelled" 
+                            @if(old('status', $reservation->status) === 'cancelled') selected @endif>
+                            ✗ Dibatalkan
+                        </option>
                     </select>
                     @error('status')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -120,26 +213,39 @@
             </div>
         </div>
 
+        <!-- ===== NOTES SECTION ===== -->
         <div class="form-group mb-3">
-            <label for="notes">Catatan</label>
-            <textarea class="form-control @error('notes') is-invalid @enderror" 
-                id="notes" name="notes" rows="3">{{ old('notes', $reservation->notes) }}</textarea>
+            <label for="notes">
+                Catatan
+            </label>
+            <textarea 
+                class="form-control @error('notes') is-invalid @enderror" 
+                id="notes" 
+                name="notes" 
+                rows="3"
+                placeholder="Tambahkan catatan jika diperlukan...">{{ old('notes', $reservation->notes) }}</textarea>
             @error('notes')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
 
+        <!-- ===== ACTION BUTTONS ===== -->
         <div class="form-group">
-            <button type="submit" class="btn btn-primary">
+            <button 
+                type="submit" 
+                class="btn btn-primary">
                 <i class="bi bi-check-circle"></i> Simpan Perubahan
             </button>
-            <a href="{{ route('admin.reservations.index') }}" class="btn btn-secondary">
+            <a 
+                href="{{ route('admin.reservations.index') }}" 
+                class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Batal
             </a>
         </div>
     </form>
 </div>
 
+<!-- ===== PRICE CALCULATION SCRIPT ===== -->
 <script>
     function updatePrice() {
         const destinationSelect = document.getElementById('destination_id');

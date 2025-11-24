@@ -10,19 +10,20 @@
 
 ---
 
-## � Daftar Isi
+## 📋 Daftar Isi
 
-- [🎯 Tentang Proyek](#tentang-proyek)
-- [�👥 Tim Pengembang](#tim-pengembang)
-- [🚀 Fitur Utama](#fitur-utama)
-- [🛠️ Tech Stack](#tech-stack)
-- [⚙️ Instalasi & Setup](#instalasi--setup)
-- [🔑 Akun Test](#akun-test)
-- [📊 Database Schema](#database-schema)
-- [🗂️ Struktur Project](#struktur-project)
-- [📚 API Routes](#api-routes)
-- [🎨 Fitur Dashboard](#fitur-dashboard)
-- [📝 Dokumentasi Lengkap](#dokumentasi-lengkap)
+- 🎯 Tentang Proyek
+- 👥 Tim Pengembang
+- 🚀 Fitur Utama
+- 🛠️ Tech Stack
+- ⚙️ Instalasi & Setup
+- 🔑 Akun Test
+- 📊 Database Schema
+- 🗂️ Struktur Project
+- 📚 API Routes
+- 🎨 Fitur Dashboard
+- 🔄 Status Management
+- 📝 Dokumentasi Lengkap
 
 ---
 
@@ -44,11 +45,11 @@ Aplikasi ini **100% Composer-based** tanpa npm/Vite, menggunakan **Bootstrap 5 C
 
 | No | Nama | NIM | Posisi | Kontribusi |
 |----|------|-----|--------|-----------|
-| 1 | **Dimas Bayu Nugroho** | 19240384 | Tech Lead | Arsitektur sistem, auth, refactor ke admin-only, CRUD controllers |
-| 2 | Septian Tirta Wijaya | 19241518 | Developer | Front end |
-| 3 | Ichwan Fauzan | 19240621 | 👨‍💻 Developer | Database design, migrations |
-| 4 | Mario Cahya Eka Saputra | 19240656 | 👨‍💻 Developer | UI/UX Frontend |
-| 5 | Rangga Sholeh Nugroho | 19240613 | 👨‍💻 Developer | Testing & QA |
+| 1 | **Dimas Bayu Nugroho** | 19240384 | Tech Lead | Arsitektur sistem, auth, refactor ke admin-only, CRUD Controllers |
+| 2 | **Septian Tirta Wijaya** | 19241518 | Developer | Front end |
+| 3 | **Ichwan Fauzan** | 19240621 | Developer | Database design, migrations |
+| 4 | **Mario Cahya Eka Saputra** | 19240656 | Developer | UI/UX Frontend |
+| 5 | **Rangga Sholeh Nugroho** | 19240613 | Developer | Testing & QA |
 
 ---
 
@@ -75,6 +76,15 @@ Aplikasi ini **100% Composer-based** tanpa npm/Vite, menggunakan **Bootstrap 5 C
 - ✅ Simpan data pelanggan: nama, email, phone
 - ✅ Catatan/notes untuk setiap reservasi
 - ✅ 70+ data dummy (Jan-Nov 2025)
+
+### 🔄 **Status Management & Audit Trail** 
+- ✅ Quick action buttons untuk ubah status (Konfirmasi, Batalkan)
+- ✅ Modal form untuk batalkan reservasi dengan alasan
+- ✅ Complete audit trail: siapa ubah, kapan, dari status apa ke apa
+- ✅ Status history timeline untuk setiap reservasi
+- ✅ Auto-log setiap perubahan status ke database
+- ✅ Bulk status update untuk multiple reservasi
+- ✅ Reason tracking untuk pembatalan
 
 ### 📊 **Dashboard Analytics**
 - ✅ Real-time statistics cards
@@ -256,6 +266,26 @@ CREATE TABLE users (
 
 **Data:** Admin user seeded otomatis
 
+### 🔄 Tabel: `status_histories` ⭐
+```sql
+CREATE TABLE status_histories (
+  id BIGINT PRIMARY KEY,
+  reservation_id BIGINT FOREIGN KEY,
+  old_status ENUM('pending', 'confirmed', 'cancelled') NULLABLE,
+  new_status ENUM('pending', 'confirmed', 'cancelled'),
+  reason VARCHAR(255) NULLABLE,
+  changed_by VARCHAR(255) NULLABLE,
+  notes TEXT NULLABLE,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP,
+  INDEX idx_reservation_id,
+  INDEX idx_created_at
+)
+```
+
+**Relasi:** Many StatusHistories → 1 Reservation  
+**Fungsi:** Audit trail lengkap setiap perubahan status reservasi
+
 ---
 
 ## �️ Struktur Project
@@ -276,12 +306,14 @@ Sistem-Reservasi-Wisata/
 │   └── Models/
 │       ├── Users.php
 │       ├── Destination.php
-│       └── Reservation.php
+│       ├── Reservation.php
+│       └── StatusHistory.php (Audit trail)
 ├── database/
 │   ├── migrations/
 │   │   ├── 2014_10_12_000000_create_users_table.php
 │   │   ├── 2025_11_19_000001_create_destinations_table.php
-│   │   └── 2025_11_19_000002_create_reservations_table.php
+│   │   ├── 2025_11_19_000002_create_reservations_table.php
+│   │   └── 2025_11_21_091658_create_status_histories_table.php (Audit trail)
 │   └── seeders/
 │       ├── DatabaseSeeder.php
 │       ├── UserSeeder.php
@@ -302,10 +334,11 @@ Sistem-Reservasi-Wisata/
 │           │   ├── edit.blade.php
 │           │   └── show.blade.php
 │           └── reservations/
-│               ├── index.blade.php
+│               ├── index.blade.php (List + search + filter)
 │               ├── create.blade.php (Auto price calc)
 │               ├── edit.blade.php
-│               └── show.blade.php
+│               ├── show.blade.php (Detail + Quick Actions)
+│               └── status-history.blade.php (Audit trail timeline) ⭐
 ├── routes/
 │   └── web.php (Admin-only routes)
 └── public/
@@ -346,6 +379,11 @@ GET    /admin/reservations/{id}          → Show reservation
 GET    /admin/reservations/{id}/edit     → Edit form
 PUT    /admin/reservations/{id}          → Update reservation
 DELETE /admin/reservations/{id}          → Delete reservation
+
+# Status Management
+POST   /admin/reservations/{id}/change-status         → Change status (quick action)
+POST   /admin/reservations/bulk-status-update         → Bulk update multiple reservations
+GET    /admin/reservations/{id}/status-history        → View status audit trail
 ```
 
 ---
@@ -390,7 +428,66 @@ DELETE /admin/reservations/{id}          → Delete reservation
 
 ---
 
-## � Dokumentasi Lengkap
+## 🔄 Status Management
+
+### 📌 **Status Workflow**
+Sistem reservasi mendukung 3 status utama:
+
+| Status | Badge | Warna | Makna |
+|--------|-------|-------|-------|
+| **Pending** | ⏳ | Orange | Reservasi baru, menunggu konfirmasi |
+| **Confirmed** | ✓ | Green | Reservasi sudah dikonfirmasi admin |
+| **Cancelled** | ✗ | Red | Reservasi dibatalkan dengan alasan |
+
+### 🎯 **Quick Actions (Detail Reservasi)**
+Ketika membuka detail reservasi, admin bisa lihat quick action buttons:
+
+1. **Konfirmasi** - Ubah status pending → confirmed (tombol hijau)
+2. **Batalkan** - Ubah status menjadi cancelled dengan modal alasan (tombol merah)
+3. **Lihat Riwayat** - Buka timeline lengkap perubahan status
+
+### 📜 **Status History Timeline**
+Fitur timeline menampilkan:
+- ⏰ **Timestamp** - Kapan status berubah
+- 👤 **Changed By** - Email admin yang melakukan perubahan
+- 🔄 **Old Status → New Status** - Perubahan dari status apa ke apa
+- 💬 **Reason** - Alasan perubahan (khusus untuk cancel)
+- 📝 **Notes** - Catatan tambahan
+
+### 🗄️ **Database Audit Trail**
+Semua perubahan status tercatat di tabel `status_histories`:
+```sql
+CREATE TABLE status_histories (
+  id BIGINT PRIMARY KEY,
+  reservation_id BIGINT FOREIGN KEY,
+  old_status ENUM('pending','confirmed','cancelled'),
+  new_status ENUM('pending','confirmed','cancelled'),
+  reason VARCHAR(255),
+  changed_by VARCHAR(255),
+  notes TEXT,
+  timestamps
+)
+```
+
+### 🔗 **Relasi Model**
+```php
+// Reservation model
+public function statusHistories()
+{
+    return $this->hasMany(StatusHistory::class)
+                ->orderBy('created_at', 'desc');
+}
+
+// StatusHistory model
+public function reservation()
+{
+    return $this->belongsTo(Reservation::class);
+}
+```
+
+---
+
+## 📝 Dokumentasi Lengkap
 
 ### � File Dokumentasi Tambahan
 - `REFACTOR_COMPLETE.md` - Detail perubahan dari user dashboard ke admin-only CRUD
@@ -467,6 +564,12 @@ A: Pastikan Chart.js CDN loaded. Check browser → Network tab. Seharusnya ada 3
 **Q: CSRF Token Error?**  
 A: Pastikan form memiliki `@csrf` token di dalam blade template.
 
+**Q: Status history tidak muncul / "Lihat Riwayat" 404?**  
+A: Pastikan migration status_histories sudah dijalankan. Run: `php artisan migrate`. Check routes dengan `php artisan route:list | grep status-history`
+
+**Q: Tombol Konfirmasi/Batalkan tidak bekerja?**  
+A: Check database status_histories table apakah sudah ada. Coba clear cache: `php artisan route:cache`
+
 ---
 
 ## 📄 License
@@ -477,6 +580,16 @@ Proyek ini dibuat untuk keperluan pendidikan dan dapat digunakan secara bebas se
 ---
 
 ## ✨ Changelog
+
+### v2.1.0 - Status Management & Audit Trail (Nov 21, 2025)
+- ✅ Status Management dengan 3 status (pending, confirmed, cancelled)
+- ✅ Quick Action buttons di detail reservasi (Konfirmasi, Batalkan)
+- ✅ Modal form untuk pembatalan dengan reason input
+- ✅ Complete audit trail dengan StatusHistory model
+- ✅ Timeline view untuk setiap status change
+- ✅ Auto-logging setiap perubahan status
+- ✅ Bulk status update endpoint
+- ✅ Search & Filter dengan status filter di reservations index
 
 ### v2.0.0 - Refactor to Admin-Only CRUD (Nov 19, 2025)
 - ✅ Convert ke admin-only system
@@ -493,5 +606,4 @@ Proyek ini dibuat untuk keperluan pendidikan dan dapat digunakan secara bebas se
 
 ---
 
-**Last Updated:** November 19, 2025  
-**Status:** ✅ Production Ready
+**Last Updated:** November 21, 2025  

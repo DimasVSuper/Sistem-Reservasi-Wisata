@@ -30,4 +30,12 @@ class Reservation extends Model
     {
         return $this->belongsTo(Destination::class);
     }
+
+    /**
+     * Relationship with StatusHistory
+     */
+    public function statusHistories()
+    {
+        return $this->hasMany(StatusHistory::class)->orderBy('created_at', 'desc');
+    }
 }

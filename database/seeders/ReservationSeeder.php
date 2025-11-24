@@ -9,17 +9,39 @@ use Illuminate\Database\Seeder;
 class ReservationSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
-     * Generate 70+ reservasi dengan tanggal dari Jan 2025 - Nov 2025 menggunakan Factory
+     * Seed 200 reservation records using ReservationFactory.
+     * 
+     * Generates realistic test data with:
+     * - 80+ authentic Indonesian names & emails
+     * - Indonesian phone numbers (081-089 format)
+     * - Random status distribution
+     * - Realistic pricing based on destinations
+     * 
+     * Data Distribution (200 total):
+     * - 140 random mixed statuses (70%)
+     * - 35 pending reservations (17.5%)
+     * - 20 confirmed reservations (10%)
+     * - 5 cancelled reservations (2.5%)
+     *
+     * @return void
      */
     public function run(): void
     {
-        // Generate 70 random reservations menggunakan factory
-        Reservation::factory(70)->create();
+        // ===== GENERATE RANDOM RESERVATIONS =====
+        // 140 reservations with random status mix
+        // Uses ReservationFactory to generate authentic Indonesian data
+        Reservation::factory(140)->create();
 
-        // Generate beberapa dengan status tertentu
-        Reservation::factory(10)->pending()->create();
-        Reservation::factory(15)->confirmed()->create();
+        // ===== GENERATE STATUS-SPECIFIC RESERVATIONS =====
+        // 35 pending reservations (awaiting confirmation)
+        Reservation::factory(35)->pending()->create();
+
+        // 20 confirmed reservations (approved)
+        Reservation::factory(20)->confirmed()->create();
+
+        // 5 cancelled reservations (rejected/cancelled)
         Reservation::factory(5)->cancelled()->create();
+
+        // ===== TOTAL RESERVATIONS CREATED: 200 =====
     }
 }

@@ -8,10 +8,21 @@ use Illuminate\Database\Seeder;
 class DestinationSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Seed destination database with 10 popular Indonesian attractions.
+     * 
+     * Creates realistic destination records with:
+     * - Authentic Indonesian location names
+     * - Realistic pricing (Rp 250K - 800K)
+     * - Star ratings (4.4 - 4.9)
+     * - Visitor statistics
+     * - Unsplash CDN images
+     *
+     * @return void
      */
     public function run(): void
     {
+        // ===== INDONESIAN DESTINATIONS DATABASE =====
+        // 10 curated popular attractions across Indonesia
         $destinations = [
             [
                 'name' => 'Candi Borobudur',
@@ -105,6 +116,8 @@ class DestinationSeeder extends Seeder
             ],
         ];
 
+        // ===== CREATE DESTINATION RECORDS =====
+        // Loop through array and create each destination in database
         foreach ($destinations as $destination) {
             Destination::create($destination);
         }

@@ -5,15 +5,39 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\Destination;
+use App\Models\StatusHistory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
+/**
+ * ReservationController
+ * Handles CRUD operations and status management for reservations
+ * Includes advanced features: bulk status update, audit trail logging
+ */
 class ReservationController extends Controller
 {
+    /**
+     * Display paginated list of reservations with search & filters
+     *
+     * Supports:
+     * - Search by customer name, email, or phone
+     * - Filter by status (pending/confirmed/cancelled)
+     * - Filter by destination
+     * - Filter by date range (from/to)
+     * - Sort by any column in any order
+     * - Eager load destinations (prevent N+1 queries)
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\View\View
+     */
     public function index(Request $request)
     {
+        // ===== BUILD QUERY WITH EAGER LOADING =====
+        // Load destination data to prevent N+1 queries
         $query = Reservation::with('destination');
 
-        // Search by customer name or email
+        // ===== SEARCH FILTERS =====
+        // Search across customer name, email, or phone
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where('customer_name', 'LIKE', "%{$search}%")
@@ -21,98 +45,296 @@ class ReservationController extends Controller
                   ->orWhere('customer_phone', 'LIKE', "%{$search}%");
         }
 
-        // Filter by status
+        // ===== STATUS FILTER =====
+        // Filter by single status: pending, confirmed, or cancelled
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
 
-        // Filter by destination
+        // ===== DESTINATION FILTER =====
+        // Filter by destination ID
         if ($request->filled('destination_id')) {
             $query->where('destination_id', $request->input('destination_id'));
         }
 
-        // Filter by date range
+        // ===== DATE RANGE FILTERS =====
+        // Filter by date from (on or after)
         if ($request->filled('date_from')) {
             $query->whereDate('reservation_date', '>=', $request->input('date_from'));
         }
 
+        // Filter by date to (on or before)
         if ($request->filled('date_to')) {
             $query->whereDate('reservation_date', '<=', $request->input('date_to'));
         }
 
-        // Sort by
+        // ===== SORTING =====
+        // Sort by column (default: reservation_date) and order (default: desc)
         $sortBy = $request->input('sort_by', 'reservation_date');
         $sortOrder = $request->input('sort_order', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
+        // ===== PAGINATION =====
+        // 10 items per page, preserve all query parameters
         $reservations = $query->paginate(10)->appends($request->query());
+        
+        // ===== FETCH DESTINATIONS FOR FILTER DROPDOWN =====
         $destinations = Destination::all();
         
         return view('admin.reservations.index', compact('reservations', 'destinations'));
     }
 
+    /**
+     * Show create reservation form
+     *
+     * @return \Illuminate\View\View
+     */
     public function create()
     {
+        // ===== LOAD DESTINATIONS FOR DROPDOWN =====
         $destinations = Destination::all();
         return view('admin.reservations.create', compact('destinations'));
     }
 
+    /**
+     * Store new reservation and create audit trail
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(Request $request)
     {
+        // ===== VALIDATION =====
         $validated = $request->validate([
-            'customer_name' => 'required|string|max:100',
-            'customer_email' => 'required|email|max:100',
-            'customer_phone' => 'required|string|max:20',
-            'destination_id' => 'required|exists:destinations,id',
-            'reservation_date' => 'required|date',
-            'quantity' => 'required|integer|min:1',
-            'total_price' => 'required|numeric|min:0',
-            'status' => 'required|in:pending,confirmed,cancelled',
-            'notes' => 'nullable|string',
+            'customer_name' => 'required|string|max:100',              // Customer name
+            'customer_email' => 'required|email|max:100',              // Customer email
+            'customer_phone' => 'required|string|max:20',              // Customer phone
+            'destination_id' => 'required|exists:destinations,id',     // Must exist in destinations
+            'reservation_date' => 'required|date',                     // Reservation date
+            'quantity' => 'required|integer|min:1',                    // Number of people (min 1)
+            'total_price' => 'required|numeric|min:0',                 // Total price in Rupiah
+            'status' => 'required|in:pending,confirmed,cancelled',     // Valid status only
+            'notes' => 'nullable|string',                              // Optional notes
         ]);
 
-        Reservation::create($validated);
+        // ===== CREATE RESERVATION =====
+        $reservation = Reservation::create($validated);
 
+        // ===== LOG AUDIT TRAIL =====
+        // Create initial status history record
+        StatusHistory::create([
+            'reservation_id' => $reservation->id,
+            'old_status' => null,                              // Initial creation
+            'new_status' => $validated['status'],
+            'changed_by' => Auth::user()->email,               // Admin who created
+            'notes' => 'Reservasi dibuat',                     // Initial creation note
+        ]);
+
+        // ===== REDIRECT =====
         return redirect()->route('admin.reservations.index')
             ->with('success', 'Reservasi berhasil ditambahkan!');
     }
 
+    /**
+     * Show reservation details with status history
+     *
+     * @param  \App\Models\Reservation  $reservation
+     * @return \Illuminate\View\View
+     */
     public function show(Reservation $reservation)
     {
-        return view('admin.reservations.show', compact('reservation'));
+        // ===== LOAD STATUS HISTORY =====
+        $statusHistories = $reservation->statusHistories;
+        return view('admin.reservations.show', compact('reservation', 'statusHistories'));
     }
 
+    /**
+     * Show edit reservation form
+     *
+     * @param  \App\Models\Reservation  $reservation
+     * @return \Illuminate\View\View
+     */
     public function edit(Reservation $reservation)
     {
+        // ===== LOAD DESTINATIONS FOR DROPDOWN =====
         $destinations = Destination::all();
         return view('admin.reservations.edit', compact('reservation', 'destinations'));
     }
 
+    /**
+     * Update reservation and log status changes to audit trail
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Reservation  $reservation
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(Request $request, Reservation $reservation)
     {
+        // ===== VALIDATION =====
         $validated = $request->validate([
-            'customer_name' => 'required|string|max:100',
-            'customer_email' => 'required|email|max:100',
-            'customer_phone' => 'required|string|max:20',
-            'destination_id' => 'required|exists:destinations,id',
-            'reservation_date' => 'required|date',
-            'quantity' => 'required|integer|min:1',
-            'total_price' => 'required|numeric|min:0',
-            'status' => 'required|in:pending,confirmed,cancelled',
-            'notes' => 'nullable|string',
+            'customer_name' => 'required|string|max:100',              // Customer name
+            'customer_email' => 'required|email|max:100',              // Customer email
+            'customer_phone' => 'required|string|max:20',              // Customer phone
+            'destination_id' => 'required|exists:destinations,id',     // Must exist in destinations
+            'reservation_date' => 'required|date',                     // Reservation date
+            'quantity' => 'required|integer|min:1',                    // Number of people (min 1)
+            'total_price' => 'required|numeric|min:0',                 // Total price in Rupiah
+            'status' => 'required|in:pending,confirmed,cancelled',     // Valid status only
+            'notes' => 'nullable|string',                              // Optional notes
         ]);
 
+        // ===== CAPTURE OLD STATUS FOR COMPARISON =====
+        $oldStatus = $reservation->status;
+
+        // ===== UPDATE RESERVATION =====
         $reservation->update($validated);
 
+        // ===== LOG STATUS CHANGE IF CHANGED =====
+        // Only log if status actually changed (prevent duplicate logs)
+        if ($oldStatus !== $validated['status']) {
+            StatusHistory::create([
+                'reservation_id' => $reservation->id,
+                'old_status' => $oldStatus,
+                'new_status' => $validated['status'],
+                'changed_by' => Auth::user()->email,                   // Admin who updated
+                'notes' => $validated['notes'] ?? null,
+            ]);
+        }
+
+        // ===== REDIRECT =====
         return redirect()->route('admin.reservations.index')
             ->with('success', 'Reservasi berhasil diperbarui!');
     }
 
+    /**
+     * Delete reservation from database
+     * 
+     * Cascade delete via foreign key: status_histories are also deleted
+     *
+     * @param  \App\Models\Reservation  $reservation
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(Reservation $reservation)
     {
+        // ===== DELETE RESERVATION =====
+        // Cascade delete: status_histories automatically deleted via FK
         $reservation->delete();
 
+        // ===== REDIRECT =====
         return redirect()->route('admin.reservations.index')
             ->with('success', 'Reservasi berhasil dihapus!');
+    }
+
+    /**
+     * Quick status change with optional reason
+     * 
+     * Used by quick action buttons on reservation detail page
+     * Logs status change with reason to audit trail
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Reservation  $reservation
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function changeStatus(Request $request, Reservation $reservation)
+    {
+        // ===== VALIDATION =====
+        $validated = $request->validate([
+            'status' => 'required|in:pending,confirmed,cancelled',     // Valid status only
+            'reason' => 'nullable|string',                             // Optional reason (for cancel)
+        ]);
+
+        // ===== CAPTURE OLD STATUS =====
+        $oldStatus = $reservation->status;
+
+        // ===== UPDATE STATUS =====
+        $reservation->status = $validated['status'];
+        $reservation->save();
+
+        // ===== LOG STATUS CHANGE =====
+        // Create audit trail entry with reason
+        StatusHistory::create([
+            'reservation_id' => $reservation->id,
+            'old_status' => $oldStatus,
+            'new_status' => $validated['status'],
+            'reason' => $validated['reason'] ?? null,                  // Reason (usually for cancellations)
+            'changed_by' => Auth::user()->email,                       // Admin who changed
+        ]);
+
+        // ===== REDIRECT =====
+        return back()->with('success', 'Status berhasil diubah menjadi ' . strtoupper($validated['status']));
+    }
+
+    /**
+     * Bulk status update for multiple reservations
+     * 
+     * Allows updating status of multiple reservations at once
+     * Only updates if status is different (prevents duplicate logs)
+     * Logs each change to audit trail
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function bulkStatusUpdate(Request $request)
+    {
+        // ===== VALIDATION =====
+        $validated = $request->validate([
+            'reservation_ids' => 'required|array',                     // Must be array
+            'reservation_ids.*' => 'integer|exists:reservations,id',   // Each ID must exist
+            'status' => 'required|in:pending,confirmed,cancelled',     // Valid status only
+            'reason' => 'nullable|string',                             // Optional reason
+        ]);
+
+        // ===== BULK UPDATE LOOP =====
+        $changedBy = Auth::user()->email;
+        $count = 0;
+
+        foreach ($validated['reservation_ids'] as $id) {
+            // ===== FETCH RESERVATION =====
+            $reservation = Reservation::find($id);
+            $oldStatus = $reservation->status;
+
+            // ===== UPDATE IF STATUS DIFFERENT =====
+            // Only update and log if status actually changed
+            if ($oldStatus !== $validated['status']) {
+                // Update reservation status
+                $reservation->status = $validated['status'];
+                $reservation->save();
+
+                // Log status change to audit trail
+                StatusHistory::create([
+                    'reservation_id' => $id,
+                    'old_status' => $oldStatus,
+                    'new_status' => $validated['status'],
+                    'reason' => $validated['reason'] ?? null,
+                    'changed_by' => $changedBy,
+                ]);
+
+                $count++;  // Increment counter
+            }
+        }
+
+        // ===== REDIRECT =====
+        return redirect()->route('admin.reservations.index')
+            ->with('success', "Status $count reservasi berhasil diubah!");
+    }
+
+    /**
+     * Display status change history/audit trail for a reservation
+     * 
+     * Shows timeline of all status changes with:
+     * - Old status → New status
+     * - Admin who made the change
+     * - Timestamp of change
+     * - Reason (if provided, especially for cancellations)
+     *
+     * @param  \App\Models\Reservation  $reservation
+     * @return \Illuminate\View\View
+     */
+    public function statusHistory(Reservation $reservation)
+    {
+        // ===== LOAD STATUS HISTORY =====
+        // Already sorted DESC by created_at in model relationship
+        $histories = $reservation->statusHistories;
+        return view('admin.reservations.status-history', compact('reservation', 'histories'));
     }
 }
