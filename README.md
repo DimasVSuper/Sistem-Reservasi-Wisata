@@ -50,11 +50,11 @@ Aplikasi ini **100% Composer-based** tanpa npm/Vite, menggunakan **Bootstrap 5 C
 
 | No | Nama | NIM | Posisi | Kontribusi |
 |----|------|-----|--------|-----------|
-| 1 | **Dimas Bayu Nugroho** | 19240384 | Tech Lead | Arsitektur sistem, auth, CRUD Controllers, code quality |
+| 1 | **Dimas Bayu Nugroho** | 19240384 | Tech Lead | Arsitektur sistem, auth, CRUD Controllers, Code Quality, Main Developer |
 | 2 | **Septian Tirta Wijaya** | 19241518 | Developer | Front end, UI Components |
 | 3 | **Ichwan Fauzan** | 19240621 | Developer | Database design, migrations, seeders |
 | 4 | **Mario Cahya Eka Saputra** | 19240656 | Developer | UI/UX Frontend, responsive design |
-| 5 | **Rangga Sholeh Nugroho** | 19240613 | Developer | Testing & QA, performance validation |
+| 5 | **Rangga Sholeh Nugroho** | 19240613 | Developer | Routing & Testing |
 
 ---
 
