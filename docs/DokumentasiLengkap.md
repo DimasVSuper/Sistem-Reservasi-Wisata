@@ -1031,58 +1031,265 @@ public function handle(Request $request, Closure $next, ...$roles): Response
 
 ## 8. VALIDASI & ERROR HANDLING
 
-### 8.1 Validation Rules
+### 8.1 Validation Architecture
 
-**Destinasi (Create/Update)**
-```php
-'name' => 'required|string|max:100'
-'description' => 'required|string'
-'location' => 'required|string|max:100'
-'price' => 'required|numeric|min:0'
-'image_url' => 'nullable|url'
-'rating' => 'nullable|numeric|min:0|max:5'
+Sistem ini mengimplementasikan **Two-Layer Validation** untuk keamanan maksimal:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│   LAYER 1: FRONTEND (HTML5 + JavaScript)                   │
+│   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│   • Pattern matching (regex via HTML5 pattern attribute)   │
+│   • Type validation (email, tel, number, date, url)        │
+│   • Range constraints (min, max)                           │
+│   • Length constraints (minlength, maxlength)              │
+│   • Helper text untuk guidance pengguna                    │
+│   • Immediate feedback (tidak ada server roundtrip)        │
+│   ⚠️  Dapat dibypass di browser developer tools            │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│   LAYER 2: BACKEND (Laravel Validation Rules)              │
+│   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│   ✅ SECURITY GATE - Tidak dapat dibypass                  │
+│   • Regex patterns untuk format validation                 │
+│   • Unique constraint checks (email, phone, name)          │
+│   • Range validation (numeric min/max)                     │
+│   • Date constraints (future dates, 1-year max)            │
+│   • Custom error messages (Bahasa Indonesia)               │
+│   • Email lowercase enforcement (strtolower)               │
+│   • Type casting & data transformation                     │
+│   • Database-level constraints (foreign keys)              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Reservasi (Create/Update)**
+### 8.2 Validation Rules by Module
+
+#### **A. CUSTOMERS Module**
+
+**File:** `app/Http/Controllers/Admin/CustomerController.php`
+
 ```php
-'customer_name' => 'required|string|max:100'
-'customer_email' => 'required|email|max:100'
-'customer_phone' => 'required|string|max:20'
-'destination_id' => 'required|exists:destinations,id'
-'reservation_date' => 'required|date'
-'quantity' => 'required|integer|min:1'
-'total_price' => 'required|numeric|min:0'
-'status' => 'required|in:pending,confirmed,cancelled'
-'notes' => 'nullable|string'
+$request->validate([
+    'name' => 'required|string|min:3|max:100|regex:/^[a-zA-Z\s]+$/',
+    'email' => 'required|email|unique:customers,email|lowercase',
+    'phone' => 'required|regex:/^[0-9]{10,15}$/|unique:customers,phone',
+    'city' => 'nullable|string|max:100|regex:/^[a-zA-Z\s]+$/',
+    'province' => 'nullable|string|max:100|regex:/^[a-zA-Z\s]+$/',
+    'postal_code' => 'nullable|regex:/^[0-9]{4,6}$/',
+    'notes' => 'nullable|string|max:1000',
+], [
+    'name.regex' => 'Nama hanya boleh mengandung huruf dan spasi',
+    'email.unique' => 'Email sudah terdaftar',
+    'email.lowercase' => 'Email harus menggunakan huruf kecil',
+    'phone.regex' => 'Nomor telepon harus terdiri dari 10-15 angka',
+    'phone.unique' => 'Nomor telepon sudah terdaftar',
+    'postal_code.regex' => 'Kode pos harus 4-6 digit angka',
+]);
 ```
 
-**Login**
-```php
-'email' => 'required|email'
-'password' => 'required|min:6'
+**Frontend Validation:**
+```blade
+<!-- Name -->
+<input pattern="^[a-zA-Z\s]{3,100}$" minlength="3" maxlength="100" 
+       title="Huruf & spasi, 3-100 karakter" required>
+
+<!-- Email -->
+<input type="email" title="Email harus benar dan huruf kecil" required>
+<small>💡 Email akan otomatis diubah menjadi huruf kecil</small>
+
+<!-- Phone -->
+<input type="tel" pattern="^[0-9]{10,15}$" 
+       title="10-15 digit angka tanpa simbol" required>
+
+<!-- City/Province -->
+<input pattern="^[a-zA-Z\s]*$" maxlength="100" 
+       title="Hanya huruf dan spasi">
+
+<!-- Postal Code -->
+<input pattern="^[0-9]{4,6}$" title="4-6 digit angka">
+
+<!-- Notes -->
+<textarea maxlength="1000"></textarea>
 ```
 
-### 8.2 Error Handling
+#### **B. DESTINATIONS Module**
 
-**Controller Validation**
+**File:** `app/Http/Controllers/Admin/DestinationController.php`
+
 ```php
+$request->validate([
+    'name' => 'required|string|min:5|max:100|unique:destinations,name',
+    'location' => 'required|string|min:5|max:100',
+    'description' => 'required|string|min:10|max:2000',
+    'price' => 'required|numeric|min:10000|max:999999999',
+    'rating' => 'nullable|numeric|min:0|max:5',
+    'image_url' => 'nullable|url|max:500',
+    'total_visitors' => 'nullable|integer|max:9999999',
+], [
+    'name.min' => 'Nama destinasi minimal 5 karakter',
+    'name.unique' => 'Nama destinasi sudah ada',
+    'location.min' => 'Lokasi minimal 5 karakter',
+    'description.min' => 'Deskripsi minimal 10 karakter',
+    'price.min' => 'Harga minimal Rp 10.000',
+    'price.max' => 'Harga maksimal Rp 999.999.999',
+    'image_url.url' => 'URL gambar harus format yang valid',
+]);
+```
+
+**Frontend Validation:**
+```blade
+<!-- Name -->
+<input minlength="5" maxlength="100" 
+       title="Nama 5-100 karakter" required>
+<small>Min. 5, max. 100 karakter</small>
+
+<!-- Location -->
+<input minlength="5" maxlength="100" required>
+
+<!-- Description -->
+<textarea minlength="10" maxlength="2000" required></textarea>
+<small>Min. 10, max. 2000 karakter</small>
+
+<!-- Price (Rp) -->
+<input type="number" min="10000" max="999999999" step="1" required>
+<small>Rp 10.000 - Rp 999.999.999</small>
+
+<!-- Rating -->
+<input type="number" min="0" max="5" step="0.1">
+<small>0.0 - 5.0 bintang</small>
+
+<!-- Image URL -->
+<input type="url" maxlength="500" 
+       placeholder="https://example.com/image.jpg">
+<small>Format: https://... (max 500 karakter)</small>
+```
+
+#### **C. RESERVATIONS Module**
+
+**File:** `app/Http/Controllers/Admin/ReservationController.php`
+
+```php
+$request->validate([
+    'customer_id' => 'required|exists:customers,id',
+    'destination_id' => 'required|exists:destinations,id',
+    'reservation_date' => 'required|date|after_or_equal:today|before_or_equal:+1 year',
+    'quantity' => 'required|integer|min:1|max:100',
+    'total_price' => 'required|numeric|min:50000|max:999999999',
+    'status' => 'required|in:pending,confirmed,cancelled',
+    'notes' => 'nullable|string|max:1000',
+], [
+    'reservation_date.after_or_equal' => 'Tanggal minimal 1 hari ke depan',
+    'reservation_date.before_or_equal' => 'Tanggal maksimal 1 tahun ke depan',
+    'quantity.min' => 'Minimal 1 orang',
+    'quantity.max' => 'Maksimal 100 orang',
+    'total_price.min' => 'Total harga minimal Rp 50.000',
+    'status.in' => 'Status harus: pending, confirmed, atau cancelled',
+]);
+```
+
+**Frontend Validation:**
+```blade
+<!-- Reservation Date -->
+<input type="date" 
+       min="{{ date('Y-m-d', strtotime('+1 day')) }}"
+       max="{{ date('Y-m-d', strtotime('+1 year')) }}" required>
+<small>Min. 1 hari, max. 1 tahun ke depan</small>
+
+<!-- Quantity -->
+<input type="number" min="1" max="100" required 
+       onchange="updatePrice()">
+<small>1-100 orang</small>
+
+<!-- Total Price (Auto-calculated) -->
+<input type="number" min="50000" step="1" readonly>
+<small>💡 Dihitung otomatis: harga × jumlah orang</small>
+
+<!-- Status -->
+<select required>
+    <option value="pending">⏳ Pending</option>
+    <option value="confirmed">✓ Confirmed</option>
+    <option value="cancelled">✗ Cancelled</option>
+</select>
+
+<!-- Notes -->
+<textarea maxlength="1000"></textarea>
+```
+
+### 8.3 Error Display Handling
+
+**In Master Layout** (`resources/views/layouts/admin.blade.php`):
+```blade
+@if ($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show">
+        <strong>Validasi Gagal!</strong>
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+@if (session('success'))
+    <div class="alert alert-success alert-dismissible fade show">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="alert alert-danger alert-dismissible fade show">
+        {{ session('error') }}
+    </div>
+@endif
+```
+
+**In Form Fields**:
+```blade
+<div class="form-group mb-3">
+    <label for="email">Email</label>
+    <input type="email" 
+           class="form-control @error('email') is-invalid @enderror" 
+           name="email"
+           value="{{ old('email') }}">
+    @error('email')
+        <div class="invalid-feedback d-block">
+            {{ $message }}
+        </div>
+    @enderror
+</div>
+```
+
+### 8.4 Special Features
+
+#### **Email Lowercase Enforcement**
+```php
+// In store() & update() methods
 $validated = $request->validate([...]);
-// Jika validasi gagal → otomatis redirect back dengan $errors
-// Jika validasi berhasil → $validated berisi data yang valid
+$validated['email'] = strtolower($validated['email']);
+Customer::create($validated);
 ```
+- **Result:** `Admin@WISATA.COM` → disimpan sebagai `admin@wisata.com`
+- **Frontend:** Helper text mengingatkan user
 
-**Try-Catch** (Opsional, tidak di-implement)
-```php
-try {
-    // Logic
-} catch (Exception $e) {
-    return back()->with('error', 'Error: ' . $e->getMessage());
+#### **Auto-Calculated Total Price**
+```javascript
+function updatePrice() {
+    const destinationSelect = document.getElementById('destination_id');
+    const selectedOption = destinationSelect.options[destinationSelect.selectedIndex];
+    const price = parseFloat(selectedOption.dataset.price) || 0;
+    const quantity = parseInt(document.getElementById('quantity').value) || 1;
+    const totalPrice = price * quantity;
+    document.getElementById('total_price').value = totalPrice.toFixed(2);
 }
 ```
 
-**Exception Handler** (`app/Exceptions/Handler.php`)
-- Handle semua exception
-- Return error page untuk 404, 403, 500, etc.
+### 8.5 Exception Handler
+
+**File:** `app/Exceptions/Handler.php`
+- Handle semua exception otomatis
+- Return error pages untuk 404, 403, 500, etc.
+- Log errors ke `storage/logs/laravel.log`
 
 ---
 
