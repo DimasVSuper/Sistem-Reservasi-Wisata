@@ -17,61 +17,27 @@
             <i class="bi bi-person-circle"></i> Data Customer
         </h5>
 
-        <!-- Customer Name & Email -->
-        <div class="row">
-            <!-- Name Field -->
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label for="customer_name">
-                        Nama Customer <span class="text-danger">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        class="form-control @error('customer_name') is-invalid @enderror" 
-                        id="customer_name" 
-                        name="customer_name" 
-                        value="{{ old('customer_name') }}" 
-                        required>
-                    @error('customer_name')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-            </div>
-
-            <!-- Email Field -->
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label for="customer_email">
-                        Email <span class="text-danger">*</span>
-                    </label>
-                    <input 
-                        type="email" 
-                        class="form-control @error('customer_email') is-invalid @enderror" 
-                        id="customer_email" 
-                        name="customer_email" 
-                        value="{{ old('customer_email') }}" 
-                        required>
-                    @error('customer_email')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-            </div>
-        </div>
-
-        <!-- Phone Field -->
+        <!-- Customer Selection -->
         <div class="form-group mb-4">
-            <label for="customer_phone">
-                Nomor Telepon <span class="text-danger">*</span>
+            <label for="customer_id">
+                Pilih Customer <span class="text-danger">*</span>
             </label>
-            <input 
-                type="tel" 
-                class="form-control @error('customer_phone') is-invalid @enderror" 
-                id="customer_phone" 
-                name="customer_phone" 
-                value="{{ old('customer_phone') }}" 
+            <select 
+                class="form-select @error('customer_id') is-invalid @enderror" 
+                id="customer_id" 
+                name="customer_id" 
                 required>
-            @error('customer_phone')
-                <div class="invalid-feedback">{{ $message }}</div>
+                <option value="">-- Pilih Customer --</option>
+                @foreach($customers as $customer)
+                    <option 
+                        value="{{ $customer->id }}"
+                        @if(old('customer_id') == $customer->id) selected @endif>
+                        {{ $customer->name }} ({{ $customer->email }})
+                    </option>
+                @endforeach
+            </select>
+            @error('customer_id')
+                <div class="invalid-feedback d-block">{{ $message }}</div>
             @enderror
         </div>
 
@@ -117,16 +83,21 @@
                 <div class="form-group mb-3">
                     <label for="reservation_date">
                         Tanggal Reservasi <span class="text-danger">*</span>
+                        <small class="text-muted">(min besok, max 1 tahun)</small>
                     </label>
                     <input 
                         type="date" 
                         class="form-control @error('reservation_date') is-invalid @enderror" 
                         id="reservation_date" 
                         name="reservation_date" 
-                        value="{{ old('reservation_date') }}" 
+                        value="{{ old('reservation_date') }}"
+                        min="{{ date('Y-m-d', strtotime('+1 day')) }}"
+                        max="{{ date('Y-m-d', strtotime('+1 year')) }}"
+                        title="Tanggal reservasi minimal besok dan maksimal 1 tahun ke depan"
                         required>
+                    <small class="form-text text-muted">💡 Reservasi minimal 1 hari ke depan</small>
                     @error('reservation_date')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
@@ -139,6 +110,7 @@
                 <div class="form-group mb-3">
                     <label for="quantity">
                         Jumlah Orang <span class="text-danger">*</span>
+                        <small class="text-muted">(1-100 orang)</small>
                     </label>
                     <input 
                         type="number" 
@@ -146,11 +118,13 @@
                         id="quantity" 
                         name="quantity" 
                         value="{{ old('quantity', 1) }}" 
-                        min="1" 
+                        min="1"
+                        max="100"
+                        title="Jumlah orang harus antara 1-100"
                         required 
                         onchange="updatePrice()">
                     @error('quantity')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
@@ -160,6 +134,7 @@
                 <div class="form-group mb-3">
                     <label for="total_price">
                         Total Harga (Rp) <span class="text-danger">*</span>
+                        <small class="text-muted">(auto-calculated)</small>
                     </label>
                     <input 
                         type="number" 
@@ -167,11 +142,14 @@
                         id="total_price" 
                         name="total_price" 
                         value="{{ old('total_price', 0) }}" 
-                        step="0.01" 
+                        step="1"
+                        min="50000"
                         required 
-                        readonly>
+                        readonly
+                        title="Total harga akan dihitung otomatis">
+                    <small class="form-text text-muted">💡 Dihitung dari harga destinasi × jumlah orang</small>
                     @error('total_price')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
@@ -216,15 +194,17 @@
         <div class="form-group mb-3">
             <label for="notes">
                 Catatan
+                <small class="text-muted">(max 1000 karakter)</small>
             </label>
             <textarea 
                 class="form-control @error('notes') is-invalid @enderror" 
                 id="notes" 
                 name="notes" 
                 rows="3"
+                maxlength="1000"
                 placeholder="Tambahkan catatan jika diperlukan...">{{ old('notes') }}</textarea>
             @error('notes')
-                <div class="invalid-feedback">{{ $message }}</div>
+                <div class="invalid-feedback d-block">{{ $message }}</div>
             @enderror
         </div>
 

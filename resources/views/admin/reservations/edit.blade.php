@@ -18,61 +18,27 @@
             <i class="bi bi-person-circle"></i> Data Customer
         </h5>
 
-        <!-- Customer Name & Email -->
-        <div class="row">
-            <!-- Name Field -->
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label for="customer_name">
-                        Nama Customer <span class="text-danger">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        class="form-control @error('customer_name') is-invalid @enderror" 
-                        id="customer_name" 
-                        name="customer_name" 
-                        value="{{ old('customer_name', $reservation->customer_name) }}" 
-                        required>
-                    @error('customer_name')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-            </div>
-
-            <!-- Email Field -->
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label for="customer_email">
-                        Email <span class="text-danger">*</span>
-                    </label>
-                    <input 
-                        type="email" 
-                        class="form-control @error('customer_email') is-invalid @enderror" 
-                        id="customer_email" 
-                        name="customer_email" 
-                        value="{{ old('customer_email', $reservation->customer_email) }}" 
-                        required>
-                    @error('customer_email')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-            </div>
-        </div>
-
-        <!-- Phone Field -->
+        <!-- Customer Selection -->
         <div class="form-group mb-4">
-            <label for="customer_phone">
-                Nomor Telepon <span class="text-danger">*</span>
+            <label for="customer_id">
+                Pilih Customer <span class="text-danger">*</span>
             </label>
-            <input 
-                type="tel" 
-                class="form-control @error('customer_phone') is-invalid @enderror" 
-                id="customer_phone" 
-                name="customer_phone" 
-                value="{{ old('customer_phone', $reservation->customer_phone) }}" 
+            <select 
+                class="form-select @error('customer_id') is-invalid @enderror" 
+                id="customer_id" 
+                name="customer_id" 
                 required>
-            @error('customer_phone')
-                <div class="invalid-feedback">{{ $message }}</div>
+                <option value="">-- Pilih Customer --</option>
+                @foreach($customers as $customer)
+                    <option 
+                        value="{{ $customer->id }}"
+                        @if(old('customer_id', $reservation->customer_id) == $customer->id) selected @endif>
+                        {{ $customer->name }} ({{ $customer->email }})
+                    </option>
+                @endforeach
+            </select>
+            @error('customer_id')
+                <div class="invalid-feedback d-block">{{ $message }}</div>
             @enderror
         </div>
 
@@ -124,8 +90,14 @@
                         class="form-control @error('reservation_date') is-invalid @enderror" 
                         id="reservation_date" 
                         name="reservation_date" 
-                        value="{{ old('reservation_date', $reservation->reservation_date->format('Y-m-d')) }}" 
+                        value="{{ old('reservation_date', $reservation->reservation_date->format('Y-m-d')) }}"
+                        min="{{ date('Y-m-d', strtotime('+1 day')) }}"
+                        max="{{ date('Y-m-d', strtotime('+1 year')) }}"
+                        title="Tanggal harus minimal 1 hari ke depan dan maksimal 1 tahun"
                         required>
+                    <small class="form-text text-muted">
+                        Min. 1 hari ke depan, max. 1 tahun ke depan
+                    </small>
                     @error('reservation_date')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -146,10 +118,15 @@
                         class="form-control @error('quantity') is-invalid @enderror" 
                         id="quantity" 
                         name="quantity" 
-                        value="{{ old('quantity', $reservation->quantity) }}" 
-                        min="1" 
+                        value="{{ old('quantity', $reservation->quantity) }}"
+                        min="1"
+                        max="100"
+                        title="Jumlah orang harus antara 1-100 orang"
                         required 
                         onchange="updatePrice()">
+                    <small class="form-text text-muted">
+                        Min. 1 orang, max. 100 orang
+                    </small>
                     @error('quantity')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -167,10 +144,15 @@
                         class="form-control @error('total_price') is-invalid @enderror" 
                         id="total_price" 
                         name="total_price" 
-                        value="{{ old('total_price', $reservation->total_price) }}" 
-                        step="0.01" 
+                        value="{{ old('total_price', $reservation->total_price) }}"
+                        min="50000"
+                        step="1"
+                        title="Total harga akan otomatis dihitung"
                         required 
                         readonly>
+                    <small class="form-text text-muted">
+                        💡 Dihitung otomatis: harga destinasi × jumlah orang
+                    </small>
                     @error('total_price')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -217,12 +199,14 @@
         <div class="form-group mb-3">
             <label for="notes">
                 Catatan
+                <small class="text-muted">(max 1000 karakter)</small>
             </label>
             <textarea 
                 class="form-control @error('notes') is-invalid @enderror" 
                 id="notes" 
                 name="notes" 
                 rows="3"
+                maxlength="1000"
                 placeholder="Tambahkan catatan jika diperlukan...">{{ old('notes', $reservation->notes) }}</textarea>
             @error('notes')
                 <div class="invalid-feedback">{{ $message }}</div>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\Destination;
+use App\Models\Customer;
 use App\Models\StatusHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,16 +34,18 @@ class ReservationController extends Controller
     public function index(Request $request)
     {
         // ===== BUILD QUERY WITH EAGER LOADING =====
-        // Load destination data to prevent N+1 queries
-        $query = Reservation::with('destination');
+        // Load destination and customer data to prevent N+1 queries
+        $query = Reservation::with('destination', 'customer');
 
         // ===== SEARCH FILTERS =====
-        // Search across customer name, email, or phone
+        // Search across customer name, email, or phone via relationship
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where('customer_name', 'LIKE', "%{$search}%")
-                  ->orWhere('customer_email', 'LIKE', "%{$search}%")
-                  ->orWhere('customer_phone', 'LIKE', "%{$search}%");
+            $query->whereHas('customer', function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%")
+                  ->orWhere('phone', 'LIKE', "%{$search}%");
+            });
         }
 
         // ===== STATUS FILTER =====
@@ -78,10 +81,11 @@ class ReservationController extends Controller
         // 10 items per page, preserve all query parameters
         $reservations = $query->paginate(10)->appends($request->query());
         
-        // ===== FETCH DESTINATIONS FOR FILTER DROPDOWN =====
+        // ===== FETCH DESTINATIONS & CUSTOMERS FOR FILTER DROPDOWN =====
         $destinations = Destination::all();
+        $customers = Customer::all();
         
-        return view('admin.reservations.index', compact('reservations', 'destinations'));
+        return view('admin.reservations.index', compact('reservations', 'destinations', 'customers'));
     }
 
     /**
@@ -91,9 +95,10 @@ class ReservationController extends Controller
      */
     public function create()
     {
-        // ===== LOAD DESTINATIONS FOR DROPDOWN =====
+        // ===== LOAD DESTINATIONS & CUSTOMERS FOR DROPDOWN =====
         $destinations = Destination::all();
-        return view('admin.reservations.create', compact('destinations'));
+        $customers = Customer::all();
+        return view('admin.reservations.create', compact('destinations', 'customers'));
     }
 
     /**
@@ -106,16 +111,25 @@ class ReservationController extends Controller
     {
         // ===== VALIDATION =====
         $validated = $request->validate([
-            'customer_name' => 'required|string|max:100',              // Customer name
-            'customer_email' => 'required|email|max:100',              // Customer email
-            'customer_phone' => 'required|string|max:20',              // Customer phone
-            'destination_id' => 'required|exists:destinations,id',     // Must exist in destinations
-            'reservation_date' => 'required|date',                     // Reservation date
-            'quantity' => 'required|integer|min:1',                    // Number of people (min 1)
-            'total_price' => 'required|numeric|min:0',                 // Total price in Rupiah
-            'status' => 'required|in:pending,confirmed,cancelled',     // Valid status only
-            'notes' => 'nullable|string',                              // Optional notes
+            'customer_id' => 'required|exists:customers,id',                                // Valid customer
+            'destination_id' => 'required|exists:destinations,id',                          // Valid destination
+            'reservation_date' => 'required|date|after_or_equal:today|before_or_equal:' . date('Y-m-d', strtotime('+1 year')),  // Future date, max 1 year
+            'quantity' => 'required|integer|min:1|max:100',                                 // 1-100 people
+            'total_price' => 'required|numeric|min:50000|max:999999999',                    // Rp 50K - 999M
+            'status' => 'required|in:pending,confirmed,cancelled',                          // Valid status
+            'notes' => 'nullable|string|max:1000',                                          // Max 1000 chars
+        ], [
+            'reservation_date.after_or_equal' => 'Tanggal reservasi tidak boleh di masa lalu',
+            'reservation_date.before_or_equal' => 'Tanggal reservasi maksimal 1 tahun ke depan',
+            'quantity.min' => 'Minimal 1 orang',
+            'quantity.max' => 'Maksimal 100 orang',
+            'total_price.min' => 'Total harga minimal Rp 50.000',
+            'total_price.max' => 'Total harga maksimal Rp 999.999.999',
         ]);
+
+        // ===== GET CUSTOMER NAME =====
+        $customer = Customer::findOrFail($validated['customer_id']);
+        $validated['customer_name'] = $customer->name;
 
         // ===== CREATE RESERVATION =====
         $reservation = Reservation::create($validated);
@@ -156,9 +170,10 @@ class ReservationController extends Controller
      */
     public function edit(Reservation $reservation)
     {
-        // ===== LOAD DESTINATIONS FOR DROPDOWN =====
+        // ===== LOAD DESTINATIONS & CUSTOMERS FOR DROPDOWN =====
         $destinations = Destination::all();
-        return view('admin.reservations.edit', compact('reservation', 'destinations'));
+        $customers = Customer::all();
+        return view('admin.reservations.edit', compact('reservation', 'destinations', 'customers'));
     }
 
     /**
@@ -172,16 +187,25 @@ class ReservationController extends Controller
     {
         // ===== VALIDATION =====
         $validated = $request->validate([
-            'customer_name' => 'required|string|max:100',              // Customer name
-            'customer_email' => 'required|email|max:100',              // Customer email
-            'customer_phone' => 'required|string|max:20',              // Customer phone
-            'destination_id' => 'required|exists:destinations,id',     // Must exist in destinations
-            'reservation_date' => 'required|date',                     // Reservation date
-            'quantity' => 'required|integer|min:1',                    // Number of people (min 1)
-            'total_price' => 'required|numeric|min:0',                 // Total price in Rupiah
-            'status' => 'required|in:pending,confirmed,cancelled',     // Valid status only
-            'notes' => 'nullable|string',                              // Optional notes
+            'customer_id' => 'required|exists:customers,id',                                // Valid customer
+            'destination_id' => 'required|exists:destinations,id',                          // Valid destination
+            'reservation_date' => 'required|date|after_or_equal:today|before_or_equal:' . date('Y-m-d', strtotime('+1 year')),  // Future date, max 1 year
+            'quantity' => 'required|integer|min:1|max:100',                                 // 1-100 people
+            'total_price' => 'required|numeric|min:50000|max:999999999',                    // Rp 50K - 999M
+            'status' => 'required|in:pending,confirmed,cancelled',                          // Valid status
+            'notes' => 'nullable|string|max:1000',                                          // Max 1000 chars
+        ], [
+            'reservation_date.after_or_equal' => 'Tanggal reservasi tidak boleh di masa lalu',
+            'reservation_date.before_or_equal' => 'Tanggal reservasi maksimal 1 tahun ke depan',
+            'quantity.min' => 'Minimal 1 orang',
+            'quantity.max' => 'Maksimal 100 orang',
+            'total_price.min' => 'Total harga minimal Rp 50.000',
+            'total_price.max' => 'Total harga maksimal Rp 999.999.999',
         ]);
+
+        // ===== GET CUSTOMER NAME =====
+        $customer = Customer::findOrFail($validated['customer_id']);
+        $validated['customer_name'] = $customer->name;
 
         // ===== CAPTURE OLD STATUS FOR COMPARISON =====
         $oldStatus = $reservation->status;

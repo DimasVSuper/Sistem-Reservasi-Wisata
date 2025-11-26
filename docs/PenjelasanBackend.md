@@ -996,52 +996,267 @@ Route::middleware(['auth'])->group(function () {
 
 ## ✅ Validation & Error Handling
 
-### 🔐 Input Validation
+### 🔐 Comprehensive Validation Rules
 
+#### **1. CUSTOMERS Module Validation**
+
+**File:** `app/Http/Controllers/Admin/CustomerController.php`
+
+**Backend Rules:**
 ```php
 $validated = $request->validate([
-    'customer_name' => 'required|string|max:100',
-    'customer_email' => 'required|email|max:100',
-    'customer_phone' => 'required|string|max:20',
-    'destination_id' => 'required|exists:destinations,id',
-    'reservation_date' => 'required|date',
-    'quantity' => 'required|integer|min:1',
-    'total_price' => 'required|numeric|min:0',
-    'status' => 'required|in:pending,confirmed,cancelled',
+    // Required fields
+    'name' => [
+        'required',
+        'string',
+        'min:3',           // Minimum 3 characters
+        'max:100',         // Maximum 100 characters
+        'regex:/^[a-zA-Z\s]+$/'  // Only letters and spaces
+    ],
+    
+    'email' => [
+        'required',
+        'email',           // Valid email format
+        'unique:customers,email',  // Unique in customers table
+        'lowercase'        // Force lowercase
+    ],
+    
+    'phone' => [
+        'required',
+        'regex:/^[0-9]{10,15}$/',  // 10-15 digits only
+        'unique:customers,phone'   // Unique in customers table
+    ],
+    
+    'city' => [
+        'nullable',
+        'string',
+        'max:100',
+        'regex:/^[a-zA-Z\s]+$/'  // Only letters and spaces
+    ],
+    
+    'province' => [
+        'nullable',
+        'string',
+        'max:100',
+        'regex:/^[a-zA-Z\s]+$/'  // Only letters and spaces
+    ],
+    
+    'postal_code' => [
+        'nullable',
+        'regex:/^[0-9]{4,6}$/'  // 4-6 digits only
+    ],
+    
+    'notes' => [
+        'nullable',
+        'string',
+        'max:1000'
+    ]
+], [
+    // Custom error messages (Indonesian)
+    'name.required' => 'Nama wajib diisi',
+    'name.min' => 'Nama minimal 3 karakter',
+    'name.max' => 'Nama maksimal 100 karakter',
+    'name.regex' => 'Nama hanya boleh mengandung huruf dan spasi',
+    
+    'email.required' => 'Email wajib diisi',
+    'email.email' => 'Email harus format yang benar',
+    'email.unique' => 'Email sudah terdaftar dalam sistem',
+    'email.lowercase' => 'Email harus menggunakan huruf kecil',
+    
+    'phone.required' => 'Nomor telepon wajib diisi',
+    'phone.regex' => 'Nomor telepon harus terdiri dari 10-15 angka (contoh: 081234567890)',
+    'phone.unique' => 'Nomor telepon sudah terdaftar dalam sistem',
+    
+    'postal_code.regex' => 'Kode pos harus terdiri dari 4-6 angka',
+]);
+
+// Special handling: Email lowercase conversion
+$validated['email'] = strtolower($validated['email']);
+Customer::create($validated);
+```
+
+#### **2. DESTINATIONS Module Validation**
+
+**File:** `app/Http/Controllers/Admin/DestinationController.php`
+
+**Backend Rules:**
+```php
+$validated = $request->validate([
+    'name' => [
+        'required',
+        'string',
+        'min:5',           // Minimum 5 characters
+        'max:100',
+        'unique:destinations,name'  // Unique destination name
+    ],
+    
+    'location' => [
+        'required',
+        'string',
+        'min:5',
+        'max:100'
+    ],
+    
+    'description' => [
+        'required',
+        'string',
+        'min:10',          // Minimum 10 characters for description
+        'max:2000'         // Maximum 2000 characters
+    ],
+    
+    'price' => [
+        'required',
+        'numeric',
+        'min:10000',       // Minimum Rp 10,000
+        'max:999999999'    // Maximum Rp 999,999,999
+    ],
+    
+    'rating' => [
+        'nullable',
+        'numeric',
+        'min:0',
+        'max:5'            // 0-5 stars
+    ],
+    
+    'image_url' => [
+        'nullable',
+        'url',             // Valid URL format
+        'max:500'          // Max 500 characters
+    ],
+    
+    'total_visitors' => [
+        'nullable',
+        'integer',
+        'max:9999999'
+    ]
+], [
+    'name.required' => 'Nama destinasi wajib diisi',
+    'name.min' => 'Nama destinasi minimal 5 karakter',
+    'name.unique' => 'Nama destinasi sudah ada dalam sistem',
+    
+    'location.min' => 'Lokasi minimal 5 karakter',
+    
+    'description.required' => 'Deskripsi wajib diisi',
+    'description.min' => 'Deskripsi minimal 10 karakter',
+    'description.max' => 'Deskripsi maksimal 2000 karakter',
+    
+    'price.required' => 'Harga wajib diisi',
+    'price.min' => 'Harga minimal Rp 10.000',
+    'price.max' => 'Harga maksimal Rp 999.999.999',
+    
+    'image_url.url' => 'URL gambar harus format yang valid (contoh: https://...)',
 ]);
 ```
 
-**Validation Rules:**
-- `required`: Field harus ada
-- `string`: Harus teks
-- `max:100`: Max 100 karakter
-- `email`: Format email valid
-- `exists:destinations,id`: ID harus ada di tabel destinations
-- `date`: Format tanggal valid
-- `integer`: Angka bulat
-- `numeric`: Angka (termasuk decimal)
-- `min:0`: Minimal 0
-- `in:...`: Hanya nilai yang dipilih
+#### **3. RESERVATIONS Module Validation**
 
-### ❌ Error Handling
+**File:** `app/Http/Controllers/Admin/ReservationController.php`
+
+**Backend Rules:**
+```php
+$validated = $request->validate([
+    'customer_id' => [
+        'required',
+        'exists:customers,id'  // Must exist in customers table
+    ],
+    
+    'destination_id' => [
+        'required',
+        'exists:destinations,id'  // Must exist in destinations table
+    ],
+    
+    'reservation_date' => [
+        'required',
+        'date',
+        'after_or_equal:today',           // Cannot be past date
+        'before_or_equal:+1 year'         // Maximum 1 year from today
+    ],
+    
+    'quantity' => [
+        'required',
+        'integer',
+        'min:1',           // Minimum 1 person
+        'max:100'          // Maximum 100 people per reservation
+    ],
+    
+    'total_price' => [
+        'required',
+        'numeric',
+        'min:50000',       // Minimum Rp 50,000
+        'max:999999999'    // Maximum Rp 999,999,999
+    ],
+    
+    'status' => [
+        'required',
+        'in:pending,confirmed,cancelled'  // Only 3 valid statuses
+    ],
+    
+    'notes' => [
+        'nullable',
+        'string',
+        'max:1000'
+    ]
+], [
+    'customer_id.required' => 'Customer harus dipilih',
+    'customer_id.exists' => 'Customer yang dipilih tidak valid',
+    
+    'destination_id.required' => 'Destinasi harus dipilih',
+    'destination_id.exists' => 'Destinasi yang dipilih tidak valid',
+    
+    'reservation_date.required' => 'Tanggal reservasi wajib diisi',
+    'reservation_date.after_or_equal' => 'Tanggal reservasi minimal 1 hari ke depan',
+    'reservation_date.before_or_equal' => 'Tanggal reservasi maksimal 1 tahun ke depan',
+    
+    'quantity.required' => 'Jumlah orang wajib diisi',
+    'quantity.integer' => 'Jumlah orang harus angka bulat',
+    'quantity.min' => 'Jumlah orang minimal 1 orang',
+    'quantity.max' => 'Jumlah orang maksimal 100 orang',
+    
+    'total_price.required' => 'Total harga wajib diisi',
+    'total_price.min' => 'Total harga minimal Rp 50.000',
+    'total_price.max' => 'Total harga maksimal Rp 999.999.999',
+    
+    'status.required' => 'Status wajib dipilih',
+    'status.in' => 'Status harus: pending, confirmed, atau cancelled',
+]);
+
+// Auto-create StatusHistory entry on creation
+if ($reservation->wasRecentlyCreated) {
+    StatusHistory::create([
+        'reservation_id' => $reservation->id,
+        'new_status' => $reservation->status,
+        'changed_by' => auth()->user()->email,
+    ]);
+}
+```
+
+### ❌ Error Handling Pattern
 
 **In Controller:**
-
 ```php
-try {
+public function store(Request $request)
+{
+    // VALIDATE INPUT
     $validated = $request->validate([...]);
-    // Process...
-    return redirect()->with('success', 'Success message');
-} catch (ValidationException $e) {
-    return back()->withErrors($e->validator);
+    
+    // If validation fails → automatic redirect back to form with $errors
+    // If validation passes → continue with business logic
+    
+    try {
+        $item = Model::create($validated);
+        return redirect()->route('...index')->with('success', 'Created successfully!');
+    } catch (Exception $e) {
+        return back()->withErrors(['error' => 'Database error: ' . $e->getMessage()]);
+    }
 }
 ```
 
 **In View:**
-
 ```blade
+<!-- Display all validation errors -->
 @if ($errors->any())
     <div class="alert alert-danger">
+        <strong>Validasi Gagal!</strong>
         <ul>
         @foreach ($errors->all() as $error)
             <li>{{ $error }}</li>
@@ -1050,11 +1265,37 @@ try {
     </div>
 @endif
 
-<!-- Or specific field -->
-@error('customer_email')
-    <span class="text-danger">{{ $message }}</span>
-@enderror
+<!-- Display specific field error -->
+<div class="form-group">
+    <label>Email</label>
+    <input type="email" class="form-control @error('email') is-invalid @enderror" name="email">
+    @error('email')
+        <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+</div>
 ```
+
+### 📋 Validation Rules Reference Table
+
+| Rule | Purpose | Example |
+|------|---------|---------|
+| `required` | Field must be provided | `'name' => 'required'` |
+| `string` | Value must be string | `'name' => 'string'` |
+| `numeric` | Value must be number | `'price' => 'numeric'` |
+| `integer` | Value must be whole number | `'quantity' => 'integer'` |
+| `min:X` | Minimum value/length | `'name' => 'min:3'` |
+| `max:X` | Maximum value/length | `'name' => 'max:100'` |
+| `email` | Valid email format | `'email' => 'email'` |
+| `url` | Valid URL format | `'image' => 'url'` |
+| `date` | Valid date format | `'date' => 'date'` |
+| `regex:/^pattern$/` | Regex pattern match | `'phone' => 'regex:/^[0-9]{10,15}$/'` |
+| `unique:table,column` | Unique in database | `'email' => 'unique:customers,email'` |
+| `exists:table,column` | Must exist in database | `'destination_id' => 'exists:destinations,id'` |
+| `in:value1,value2` | Restricted values | `'status' => 'in:pending,confirmed,cancelled'` |
+| `lowercase` | Convert to lowercase | `'email' => 'lowercase'` |
+| `nullable` | Optional field | `'notes' => 'nullable'` |
+| `after_or_equal:date` | Date after today | `'date' => 'after_or_equal:today'` |
+| `before_or_equal:date` | Date before limit | `'date' => 'before_or_equal:+1 year'` |
 
 ---
 

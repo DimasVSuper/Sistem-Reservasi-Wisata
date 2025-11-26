@@ -137,44 +137,137 @@ STATUS_HISTORIES (Audit Trail)
 
 ## 📋 VALIDATIONS
 
-### Destination
+### ✅ Two-Layer Validation (Frontend + Backend)
 
-```
-name: required, max 100
-description: required
-location: required, max 100
-price: required, numeric, >= 0
-image_url: optional, valid URL
-rating: optional, 0-5
-```
+#### **Customers**
 
-### Reservation
-
+**Backend Rules:**
 ```
-customer_name: required, max 100
-customer_email: required, valid email
-customer_phone: required, max 20
-destination_id: required, must exist
-reservation_date: required, valid date
-quantity: required, integer, >= 1
-total_price: required, numeric, >= 0
-status: required, in [pending, confirmed, cancelled]
-notes: optional, string
+name:        required | min:3 | max:100 | letters & spaces only
+email:       required | unique | valid format | lowercase ONLY
+phone:       required | unique | 10-15 digits only
+city:        optional | letters & spaces only
+province:    optional | letters & spaces only  
+postal_code: optional | 4-6 digits only
+notes:       optional | max 1000 chars
 ```
 
-### Status Change
+**Frontend Validation:**
+```html
+name:        pattern="^[a-zA-Z\s]{3,100}$" minlength="3" maxlength="100"
+email:       type="email" + helper text for lowercase
+phone:       type="tel" pattern="^[0-9]{10,15}$"
+city:        pattern="^[a-zA-Z\s]*$" maxlength="100"
+province:    pattern="^[a-zA-Z\s]*$" maxlength="100"
+postal_code: pattern="^[0-9]{4,6}$"
+notes:       maxlength="1000"
+```
 
+**Special Features:**
+- 💡 Email automatically converted to lowercase (backend)
+- ✓ Phone & Email must be unique per customer
+- ✓ All error messages in Indonesian
+
+---
+
+#### **Destinations**
+
+**Backend Rules:**
 ```
-status: required, in [pending, confirmed, cancelled]
-reason: optional, string
+name:         required | min:5 | max:100 | unique
+location:     required | min:5 | max:100
+description:  required | min:10 | max:2000
+price:        required | Rp 10,000 - Rp 999,999,999
+rating:       optional | 0-5 stars
+image_url:    optional | valid URL | max 500 chars
+total_visitors: optional | integer
 ```
 
-### Login
+**Frontend Validation:**
+```html
+name:       minlength="5" maxlength="100"
+location:   minlength="5" maxlength="100"
+description: minlength="10" maxlength="2000"
+price:      type="number" min="10000" max="999999999" step="1"
+rating:     type="number" min="0" max="5" step="0.1"
+image_url:  type="url" maxlength="500"
+```
 
+**Special Features:**
+- ✓ Destination name must be unique
+- ✓ Price has realistic business range
+- ✓ Rating in 0.1 increments (0.0 to 5.0)
+
+---
+
+#### **Reservations**
+
+**Backend Rules:**
 ```
-email: required, valid email
-password: required, min 6
+customer_id:      required | must exist in customers table
+destination_id:   required | must exist in destinations table
+reservation_date: required | future date | max 1 year ahead
+quantity:         required | 1-100 people per reservation
+total_price:      required | Rp 50,000 - Rp 999,999,999
+status:           required | in [pending, confirmed, cancelled]
+notes:            optional | max 1000 chars
 ```
+
+**Frontend Validation:**
+```html
+reservation_date: type="date" min="+1 day" max="+1 year"
+quantity:         type="number" min="1" max="100" onchange="updatePrice()"
+total_price:      type="number" min="50000" readonly (auto-calculated)
+status:           select (3 valid options)
+notes:            maxlength="1000"
+```
+
+**Special Features:**
+- 🚫 Cannot book past dates or more than 1 year ahead
+- 💡 Total price auto-calculated: destination_price × quantity
+- ✓ Total price field is readonly to prevent manual errors
+- ✓ Status automatically logged in status_histories table
+
+---
+
+#### **Login**
+
+**Backend Rules:**
+```
+email:    required | valid email format
+password: required | min 6 characters
+```
+
+---
+
+### 🔄 Status Change Validation
+
+**Backend Rules:**
+```
+status: required | in [pending, confirmed, cancelled]
+reason: optional | string (for cancellation reason)
+```
+
+---
+
+### 📊 Validation Statistics
+
+**Total Validation Rules per Module:**
+- Customers: 7 rules (backend) + 7 fields (frontend)
+- Destinations: 7 rules (backend) + 7 fields (frontend)
+- Reservations: 7 rules (backend) + 5 fields (frontend)
+
+**Key Features:**
+- ✅ Email lowercase enforcement
+- ✅ Unique constraints (email, phone, destination name)
+- ✅ Regex patterns for format validation
+- ✅ Date range constraints (future dates only)
+- ✅ Quantity limits (1-100 people)
+- ✅ Price range validation
+- ✅ Auto-calculated total price
+- ✅ All custom error messages in Indonesian
+- ✅ Browser-level frontend validation (instant feedback)
+- ✅ Server-level backend validation (security gate)
 
 ---
 
