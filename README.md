@@ -105,12 +105,44 @@ Aplikasi ini **100% Composer-based** tanpa npm/Vite, menggunakan **Bootstrap 5 C
 - ✅ Auto-logout & session management
 - ✅ Session regeneration untuk prevent session fixation attacks
 
+### ✅ **Comprehensive Two-Layer Validation** ⭐ NEW
+- ✅ **Frontend Validation (HTML5):**
+  - Pattern attributes untuk format validation (regex)
+  - Type attributes (tel, email, number, date, url)
+  - Min/max constraints, minlength/maxlength
+  - Required fields enforcement
+  - Helper text & tooltips untuk user guidance
+  - Instant feedback (no server roundtrip)
+
+- ✅ **Backend Validation (Laravel Rules):**
+  - Regex patterns untuk format enforcement
+  - Unique constraint checks (email, phone, destination name)
+  - Range validation (numeric min/max, date range)
+  - Format validation (email, url, date)
+  - Foreign key existence checks (referential integrity)
+  - Custom error messages (Bahasa Indonesia)
+  - Email lowercase enforcement (auto-conversion)
+  - Data transformation & sanitization
+
+**Validation Rules Summary:**
+| Field | Frontend | Backend | Special |
+|-------|----------|---------|---------|
+| Email | type="email" | unique + lowercase | Auto-converted to lowercase |
+| Phone | pattern="^[0-9]{10,15}$" | regex + unique | 10-15 digits, no special chars |
+| Name | pattern="^[a-zA-Z\s]+" | regex | Letters & spaces only |
+| Postal Code | pattern="^[0-9]{4,6}$" | regex | Exactly 4-6 digits |
+| Date | min/max date | after_or_equal + before_or_equal | Future dates only, max 1 year |
+| Quantity | min=1 max=100 | integer min:1 max:100 | 1-100 people per reservation |
+| Price | type=number | numeric min:10000 | Realistic business ranges |
+| Destination Name | minlength=5 | min:5 unique | Minimum 5 chars, must be unique |
+| Description | minlength=10 | min:10 | Minimum 10 chars for detail |
+
 ### 🏖️ **Manajemen Destinasi**
 - ✅ CRUD lengkap untuk destinasi wisata
 - ✅ Upload & tampilkan gambar destinasi (Unsplash CDN)
 - ✅ Kelola: nama, deskripsi, lokasi, harga, rating, pengunjung
 - ✅ Pagination & search dengan multiple filters
-- ✅ Validasi input komprehensif
+- ✅ **Comprehensive validation:** name (5-100, unique), description (10-2000), price (Rp 10K-999M), rating (0-5), URL format
 - ✅ Cascade delete dengan automatic foreign key handling
 
 ### 📅 **Manajemen Reservasi (200+ Data)**
@@ -119,6 +151,7 @@ Aplikasi ini **100% Composer-based** tanpa npm/Vite, menggunakan **Bootstrap 5 C
 - ✅ Track status: Pending, Confirmed, Cancelled
 - ✅ Simpan data pelanggan: nama, email, phone
 - ✅ Catatan/notes untuk setiap reservasi
+- ✅ **Comprehensive validation:** customer (name, email↓, phone, city, province, postal), dates (future+1yr max), quantity (1-100), price range
 - ✅ **200+ data dummy** dengan realistic distribution:
   - 140 random reservations (70%)
   - 35 pending (17.5%)
@@ -165,7 +198,7 @@ Aplikasi ini **100% Composer-based** tanpa npm/Vite, menggunakan **Bootstrap 5 C
 - ✅ Color-coded stat cards & badges
 - ✅ Table responsive dengan hover effects
 - ✅ Modal confirmations untuk delete operations
-- ✅ Form validation feedback real-time
+- ✅ **Form validation feedback real-time** (HTML5 + Bootstrap CSS)
 - ✅ Bootstrap Icons CDN (1.10.5)
 
 ---
@@ -677,6 +710,70 @@ Proyek ini dibuat untuk keperluan pendidikan dan dapat digunakan secara bebas se
   - `docs/PenjelasanBackend.md` - Updated dengan seeding details
   - `docs/PenjelasanFrontend.md` - Updated dengan performance & testing
   - Comprehensive README dengan semua features
+- ✅ **Comprehensive Validation Suite:**
+  - Two-layer validation (Frontend HTML5 + Backend Laravel)
+  - Email lowercase enforcement
+  - Phone format validation (10-15 digits)
+  - Name alphabetic-only validation
+  - Postal code format (4-6 digits)
+  - Price range validation (realistic business ranges)
+  - Date constraints (future dates, 1-year maximum)
+  - Quantity limits (1-100 people)
+  - Auto-calculated total price
+  - Custom error messages (Bahasa Indonesia)
+
+### v3.0.0 - Comprehensive Validation Implementation (Nov 26, 2025) ⭐ ULTRA
+- ✅ **Frontend Validation Layer:**
+  - HTML5 pattern attributes (regex) untuk semua text fields
+  - Type attributes (tel, email, url, number, date)
+  - Min/max/minlength/maxlength constraints
+  - Required field enforcement
+  - Title attributes dengan helpful messages
+  - Helper text explaining validation requirements
+  - Real-time feedback (no server delay)
+  - Applied to ALL CREATE & EDIT forms
+
+- ✅ **Backend Validation Layer:**
+  - Regex patterns (`^[a-zA-Z\s]+$`, `^[0-9]{10,15}$`, etc.)
+  - Unique constraint validation (email, phone, destination name)
+  - Range validation (min/max for numeric & date fields)
+  - Format validation (email, url, date)
+  - Foreign key existence checks
+  - Custom error messages (all Indonesian)
+  - Email `strtolower()` enforcement
+  - Type casting & data transformation
+
+- ✅ **Validation Rules per Module:**
+  - **Customers:** 7 comprehensive rules (name, email↓, phone, city, province, postal, notes)
+  - **Destinations:** 7 comprehensive rules (name, location, description, price, rating, image_url, visitors)
+  - **Reservations:** 7 comprehensive rules (date range, quantity, price, status, notes)
+
+- ✅ **Special Features:**
+  - Email auto-converted to lowercase (backend + frontend message)
+  - Phone unique + format enforced
+  - Destination name unique + minimum 5 chars
+  - Future dates only (no past bookings)
+  - 1-year maximum booking window
+  - Quantity capped at 100 people max
+  - Price ranges (Rp 10K-999M destinations, Rp 50K-999M reservations)
+  - Auto-calculated total price (readonly field)
+
+- ✅ **Error Messages (Bahasa Indonesia):**
+  - `Nama hanya boleh mengandung huruf dan spasi`
+  - `Email sudah terdaftar dalam sistem`
+  - `Nomor telepon harus terdiri dari 10-15 angka`
+  - `Tanggal reservasi minimal 1 hari ke depan`
+  - `Jumlah orang harus antara 1 dan 100`
+  - And 20+ more custom messages
+
+- ✅ **Documentation:**
+  - `docs/DokumentasiLengkap.md` - Section 8 with two-layer architecture
+  - `docs/PenjelasanBackend.md` - Detailed validation rules & error handling
+  - `docs/PenjelasanFrontend.md` - Frontend HTML5 attributes & form patterns
+  - `docs/QuickReference.md` - Validation quick reference table
+  - `VALIDATION_SUMMARY.md` - Complete validation implementation reference
+
+
 
 ### v2.1.0 - Status Management & Audit Trail (Nov 21, 2025)
 - ✅ Status Management dengan 3 status (pending, confirmed, cancelled)
