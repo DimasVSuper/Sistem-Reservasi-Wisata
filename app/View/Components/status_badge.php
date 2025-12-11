@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class StatusBadge extends Component
+class Status_Badge extends Component
 {
     /**
      * Create a new component instance.

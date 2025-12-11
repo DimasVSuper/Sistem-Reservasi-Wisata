@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class ReservationQuickActions extends Component
+class Reservation_Quick_Actions extends Component
 {
     /**
      * Create a new component instance.
