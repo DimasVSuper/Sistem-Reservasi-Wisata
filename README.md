@@ -1,203 +1,259 @@
-# 🏖️ Sistem Reservasi Wisata - Admin CRUD System
+# 🏖️ Sistem Reservasi Wisata
 
-> **Platform manajemen profesional untuk mengelola destinasi dan reservasi wisata dengan dashboard analytics yang powerful & kode production-ready**
+Sistem manajemen reservasi wisata berbasis Laravel yang komprehensif, dikembangkan sebagai proyek mahasiswa, dengan operasi CRUD lengkap, dashboard analitik, dan kode siap produksi.
 
 ![Laravel](https://img.shields.io/badge/Laravel-10.x-FF2D20?style=flat-square&logo=laravel)
 ![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4?style=flat-square&logo=php)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1?style=flat-square&logo=mysql)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=flat-square&logo=bootstrap)
 ![Chart.js](https://img.shields.io/badge/Chart.js-3.9-FF6384?style=flat-square&logo=chartjs)
-![Code Quality](https://img.shields.io/badge/Code%20Quality-A+-00C853?style=flat-square)
-![Documentation](https://img.shields.io/badge/Documentation-Comprehensive-0066FF?style=flat-square)
-
----
 
 ## 📋 Daftar Isi
 
-- 🎯 Tentang Proyek
-- 👥 Tim Pengembang
-- 🚀 Fitur Utama
-- 💻 Code Quality & Best Practices
-- 🛠️ Tech Stack
-- ⚙️ Instalasi & Setup
-- 🔑 Akun Test
-- 📊 Database Schema
-- 🗂️ Struktur Project
-- 📚 API Routes
-- 🎨 Fitur Dashboard
-- 🔄 Status Management
-- 🌱 Database Seeding (200+ Data)
-- 📚 Dokumentasi Lengkap
+- [Ringkasan Proyek](#-ringkasan-proyek)
+- [Anggota Tim](#-anggota-tim)
+- [Fitur Utama](#-fitur-utama)
+- [Teknologi](#-teknologi)
+- [Struktur Proyek](#-struktur-proyek)
+- [Instalasi & Setup](#-instalasi--setup)
+- [Skema Database](#-skema-database)
+- [Rute API](#-rute-api)
+- [Akun Testing](#-akun-testing)
+- [Screenshot](#-screenshot)
+- [Keterampilan Teknis yang Dikuasai](#-keterampilan-teknis-yang-dikuasai)
+- [Hasil Pembelajaran](#-hasil-pembelajaran)
+- [Perbaikan Masa Depan](#-perbaikan-masa-depan)
 
----
+## 🎯 Ringkasan Proyek
 
-## 🎯 Tentang Proyek
+Proyek ini adalah sistem reservasi wisata berbasis web yang dibangun dengan Laravel 10, dirancang untuk mendemonstrasikan penerapan praktis konsep pengembangan web modern. Sistem ini memungkinkan administrator untuk mengelola destinasi dan reservasi pelanggan melalui antarmuka yang bersih dan responsif.
 
-**Sistem Reservasi Wisata** adalah aplikasi web berbasis Laravel yang dirancang khusus untuk **admin CRUD system**. Sistem ini memungkinkan pengelola wisata untuk:
+**Sorotan Utama:**
+- Operasi CRUD lengkap untuk destinasi dan reservasi
+- Dashboard analitik real-time dengan grafik interaktif
+- Validasi dan langkah keamanan yang komprehensif
+- Kode siap produksi dengan dokumentasi ekstensif
+- 200+ data uji yang di-seed untuk skenario realistis
+- Pelacakan status dengan audit trail
 
-✅ Mengelola destinasi wisata (Create, Read, Update, Delete)  
-✅ Mengelola reservasi pelanggan dengan 200+ data testing  
-✅ Melihat analytics dan dashboard interaktif dengan 3 charts berbeda  
-✅ Membuat laporan penjualan real-time  
-✅ Tracking status reservasi dengan audit trail lengkap  
-✅ Mengelola sistem dengan kode production-ready & well-documented
+## 👥 Anggota Tim
 
-Aplikasi ini **100% Composer-based** tanpa npm/Vite, menggunakan **Bootstrap 5 CDN** dan **Chart.js CDN** untuk UI yang responsif dan modern. Semua kode refactored dengan **comprehensive documentation** dan **best practices**.
-
----
-
-## 👥 Tim Pengembang
-
-| No | Nama | NIM | Posisi | Kontribusi |
-|----|------|-----|--------|-----------|
-| 1 | **Dimas Bayu Nugroho** | 19240384 | Tech Lead | Arsitektur sistem, auth, CRUD Controllers, Code Quality, Main Developer |
-| 2 | **Septian Tirta Wijaya** | 19241518 | Developer | Front end, UI Components |
-| 3 | **Ichwan Fauzan** | 19240621 | Developer | Database design, migrations, seeders |
-| 4 | **Mario Cahya Eka Saputra** | 19240656 | Developer | UI/UX Frontend, responsive design |
-| 5 | **Rangga Sholeh Nugroho** | 19240613 | Developer | Routing & Testing |
-
----
-
-## 💻 Code Quality & Best Practices
-
-### ✨ **Comprehensive Code Documentation**
-- ✅ **Class-level DocBlocks** - Setiap controller dan model dilengkapi DocBlock lengkap
-- ✅ **Method Documentation** - @param, @return types, detailed descriptions
-- ✅ **Section Comments** - Organized code sections dengan `===== SECTION NAME =====`
-- ✅ **Inline Comments** - Penjelasan untuk business logic & validations
-- ✅ **PHP DocBlocks** - Follow PSR-5 standards
-
-### 📊 **Code Organization**
-- ✅ **Controllers** - 4 controller dengan ~350+ lines documentation
-  - `AuthController.php` - Admin authentication (159 lines)
-  - `DashboardController.php` - Analytics & charts (157 lines)
-  - `DestinationController.php` - Destination CRUD (140 lines)
-  - `ReservationController.php` - Reservation CRUD + status management (341 lines)
-- ✅ **Models** - 4 models dengan relationships & properties documented
-- ✅ **Factories** - 2 factories dengan 80+ Indonesian names
-  - `DestinationFactory.php` - 115 lines dengan organized data sections
-  - `ReservationFactory.php` - 221 lines dengan name distributions
-- ✅ **Seeders** - 4 seeders dengan execution order documentation
-  - `DatabaseSeeder.php` - Seeding orchestration
-  - `UserSeeder.php` - Admin users with security notes
-  - `DestinationSeeder.php` - 10 destination data
-  - `ReservationSeeder.php` - 200 realistic reservations
-
-### 🧪 **Data Quality & Testing**
-- ✅ **200+ Reservations** - Realistic data dengan proper distribution:
-  - 140 random (70%)
-  - 35 pending (17.5%)
-  - 20 confirmed (10%)
-  - 5 cancelled (2.5%)
-- ✅ **Indonesian Localization** - 80+ authentic Indonesian names
-- ✅ **Realistic Phone Format** - 081-089 prefixes dengan proper format
-- ✅ **Date Distribution** - Jan-Nov 2025 dengan weekday/weekend patterns
-
----
+| Nama | NIM | Peran | Kontribusi Utama |
+|------|-----|------|------------------|
+| **Dimas Bayu Nugroho** | 19240384 | Tech Lead | Arsitektur sistem, autentikasi, controller CRUD, kualitas kode |
+| **Septian Tirta Wijaya** | 19241518 | Pengembang Frontend | Komponen UI, desain responsif |
+| **Ichwan Fauzan** | 19240621 | Pengembang Database | Desain database, migrasi, seeder |
+| **Mario Cahya Eka Saputra** | 19240656 | Pengembang UI/UX | Desain frontend, pengalaman pengguna |
+| **Rangga Sholeh Nugroho** | 19240613 | Pengembang Backend | Routing, testing, integrasi API |
 
 ## 🚀 Fitur Utama
 
-### 🔐 **Authentication & Authorization**
-- ✅ Admin-only login system dengan email & password
-- ✅ Password hashing dengan bcrypt (aman & secure)
-- ✅ CSRF protection & session security
-- ✅ Role-based access control (Admin middleware)
-- ✅ Auto-logout & session management
-- ✅ Session regeneration untuk prevent session fixation attacks
+### 🔐 Autentikasi & Keamanan
+- Akses khusus admin dengan login aman
+- Hashing password dan perlindungan CSRF
+- Manajemen sesi dan logout otomatis
+- Kontrol akses berbasis peran
 
-### ✅ **Comprehensive Two-Layer Validation** ⭐ NEW
-- ✅ **Frontend Validation (HTML5):**
-  - Pattern attributes untuk format validation (regex)
-  - Type attributes (tel, email, number, date, url)
-  - Min/max constraints, minlength/maxlength
-  - Required fields enforcement
-  - Helper text & tooltips untuk user guidance
-  - Instant feedback (no server roundtrip)
+### 🏖️ Manajemen Destinasi
+- Operasi CRUD lengkap
+- Integrasi gambar via CDN
+- Pencarian dan penyaringan lanjutan
+- Validasi data dan batasan
 
-- ✅ **Backend Validation (Laravel Rules):**
-  - Regex patterns untuk format enforcement
-  - Unique constraint checks (email, phone, destination name)
-  - Range validation (numeric min/max, date range)
-  - Format validation (email, url, date)
-  - Foreign key existence checks (referential integrity)
-  - Custom error messages (Bahasa Indonesia)
-  - Email lowercase enforcement (auto-conversion)
-  - Data transformation & sanitization
+### 📅 Manajemen Reservasi
+- Sistem pemesanan pelanggan
+- Pelacakan status (Pending, Confirmed, Cancelled)
+- Perhitungan harga otomatis
+- Audit trail untuk perubahan status
 
-**Validation Rules Summary:**
-| Field | Frontend | Backend | Special |
-|-------|----------|---------|---------|
-| Email | type="email" | unique + lowercase | Auto-converted to lowercase |
-| Phone | pattern="^[0-9]{10,15}$" | regex + unique | 10-15 digits, no special chars |
-| Name | pattern="^[a-zA-Z\s]+" | regex | Letters & spaces only |
-| Postal Code | pattern="^[0-9]{4,6}$" | regex | Exactly 4-6 digits |
-| Date | min/max date | after_or_equal + before_or_equal | Future dates only, max 1 year |
-| Quantity | min=1 max=100 | integer min:1 max:100 | 1-100 people per reservation |
-| Price | type=number | numeric min:10000 | Realistic business ranges |
-| Destination Name | minlength=5 | min:5 unique | Minimum 5 chars, must be unique |
-| Description | minlength=10 | min:10 | Minimum 10 chars for detail |
+### 📊 Dashboard Analitik
+- Statistik real-time
+- Grafik interaktif (Line, Bar, Doughnut)
+- Pelacakan pendapatan
+- Peringkat destinasi teratas
 
-### 🏖️ **Manajemen Destinasi**
-- ✅ CRUD lengkap untuk destinasi wisata
-- ✅ Upload & tampilkan gambar destinasi (Unsplash CDN)
-- ✅ Kelola: nama, deskripsi, lokasi, harga, rating, pengunjung
-- ✅ Pagination & search dengan multiple filters
-- ✅ **Comprehensive validation:** name (5-100, unique), description (10-2000), price (Rp 10K-999M), rating (0-5), URL format
-- ✅ Cascade delete dengan automatic foreign key handling
+### 🎨 Antarmuka Pengguna
+- Desain Bootstrap responsif
+- Tata letak berbasis kartu modern
+- Modal dan formulir interaktif
+- Navigasi ramah mobile
 
-### 📅 **Manajemen Reservasi (200+ Data)**
-- ✅ CRUD untuk booking/reservasi pelanggan
-- ✅ Auto-calculate total harga (destinasi price × quantity)
-- ✅ Track status: Pending, Confirmed, Cancelled
-- ✅ Simpan data pelanggan: nama, email, phone
-- ✅ Catatan/notes untuk setiap reservasi
-- ✅ **Comprehensive validation:** customer (name, email↓, phone, city, province, postal), dates (future+1yr max), quantity (1-100), price range
-- ✅ **200+ data dummy** dengan realistic distribution:
-  - 140 random reservations (70%)
-  - 35 pending (17.5%)
-  - 20 confirmed (10%)
-  - 5 cancelled (2.5%)
-  - Date range: Jan 1 - Nov 30, 2025
-  - Indonesian customer names & phone format
+## 🛠️ Teknologi
 
-### 🔄 **Status Management & Audit Trail** 
-- ✅ Quick action buttons untuk ubah status (Konfirmasi, Batalkan)
-- ✅ Modal form untuk batalkan reservasi dengan alasan
-- ✅ Complete audit trail: siapa ubah, kapan, dari status apa ke apa
-- ✅ Status history timeline untuk setiap reservasi
-- ✅ Auto-log setiap perubahan status ke database
-- ✅ Bulk status update untuk multiple reservasi sekaligus
-- ✅ Reason tracking untuk pembatalan dengan full context
+- **Backend:** Laravel 10.x, PHP 8.1+
+- **Database:** MySQL 8.0+
+- **Frontend:** Bootstrap 5.3, Chart.js 3.9
+- **Autentikasi:** Laravel Sanctum
+- **Validasi:** Laravel Request Validation
+- **Testing:** PHPUnit
+- **Version Control:** Git
 
-### 📊 **Dashboard Analytics**
-- ✅ Real-time statistics cards dengan icon
-  - Total destinasi (blue)
-  - Total reservasi (purple)
-  - Total revenue (Rp) - green
-  - Reservasi pending (orange)
-- ✅ **3 Interactive Charts** powered by Chart.js:
-  - 📈 Line chart: 30-hari terakhir reservasi dengan weekday/weekend variability
-  - 📊 Bar chart: Revenue 3 bulan terakhir
-  - 🍩 Doughnut chart: Status distribusi (pending/confirmed/cancelled)
-- ✅ Top 5 destinasi list ranked by reservation count
-- ✅ Auto-refresh data & responsive layout
+## 📁 Struktur Proyek
 
-### 🎨 **Landing Page (Beranda)**
-- ✅ Hero section dengan animated icon
-- ✅ 6 feature cards dengan gambar Unsplash
-- ✅ Statistics section dengan real numbers
-- ✅ About section dengan project info
-- ✅ Professional footer dengan navigation
-- ✅ Responsive design (mobile, tablet, desktop)
-- ✅ Navigation bar dengan login/dashboard links
+```
+Sistem-Reservasi-Wisata/
+├── app/
+│   ├── Console/
+│   ├── Exceptions/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── AuthController.php
+│   │   │   └── Admin/
+│   │   │       ├── CustomerController.php
+│   │   │       ├── DashboardController.php
+│   │   │       ├── DestinationController.php
+│   │   │       └── ReservationController.php
+│   │   └── Middleware/
+│   ├── Models/
+│   │   ├── Customer.php
+│   │   ├── Destination.php
+│   │   ├── Reservation.php
+│   │   ├── StatusHistory.php
+│   │   └── Users.php
+│   └── Providers/
+├── bootstrap/
+├── config/
+├── database/
+│   ├── factories/
+│   ├── migrations/
+│   └── seeders/
+├── docs/
+├── public/
+├── resources/
+│   ├── css/
+│   ├── js/
+│   └── views/
+│       ├── admin/
+│       ├── auth/
+│       ├── components/
+│       ├── errors/
+│       └── layouts/
+├── routes/
+├── storage/
+└── tests/
+```
 
-### 📱 **User Interface**
-- ✅ Modern design dengan Bootstrap 5.3 CDN
-- ✅ Sidebar navigation (fixed, responsive)
-- ✅ Sticky topbar dengan user info & logout
-- ✅ Color-coded stat cards & badges
-- ✅ Table responsive dengan hover effects
-- ✅ Modal confirmations untuk delete operations
+## ⚙️ Instalasi & Setup
+
+1. **Clone repository:**
+   ```bash
+   git clone <repository-url>
+   cd Sistem-Reservasi-Wisata
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   composer install
+   ```
+
+3. **Setup environment:**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+4. **Konfigurasi database:**
+   - Update `.env` dengan kredensial database Anda
+   - Jalankan migrasi dan seeder:
+   ```bash
+   php artisan migrate
+   php artisan db:seed
+   ```
+
+5. **Jalankan aplikasi:**
+   ```bash
+   php artisan serve
+   ```
+
+## 📊 Skema Database
+
+Sistem ini menggunakan empat tabel utama:
+- `users` - Autentikasi admin
+- `customers` - Informasi pelanggan
+- `destinations` - Destinasi wisata
+- `reservations` - Catatan pemesanan
+- `status_histories` - Audit trail untuk perubahan status
+
+## 📚 Rute API
+
+- **Autentikasi:** `/login`, `/logout`
+- **Dashboard:** `/admin/dashboard`
+- **Destinasi:** `/admin/destinations/*`
+- **Reservasi:** `/admin/reservations/*`
+- **Pelanggan:** `/admin/customers/*`
+
+## 🔑 Akun Testing
+
+- **Email:** admin@example.com
+- **Password:** password
+
+## 📸 Screenshot
+
+*Tambahkan screenshot halaman utama di sini - Dashboard, Manajemen Destinasi, Daftar Reservasi, dll.*
+
+## 💻 Keterampilan Teknis yang Dikuasai
+
+### Pengembangan Backend
+- Keahlian framework Laravel
+- Implementasi arsitektur MVC
+- Desain database dan relasi
+- Autentikasi dan otorisasi
+- Validasi formulir dan penanganan error
+- Pengembangan API dan routing
+
+### Pengembangan Frontend
+- Desain web responsif
+- Penggunaan framework Bootstrap
+- Integrasi JavaScript
+- Visualisasi data dengan Chart.js
+- Templating Blade
+
+### Manajemen Database
+- Operasi MySQL
+- Migrasi dan seeding
+- Relasi dan batasan data
+- Optimasi query
+
+### Praktik Pengembangan
+- Kontrol versi dengan Git
+- Dokumentasi kode
+- Dasar-dasar testing
+- Praktik keamanan terbaik
+- Organisasi dan struktur kode
+
+## 📈 Hasil Pembelajaran
+
+Melalui proyek ini, kami mendapatkan pengalaman praktis dalam:
+- Pengembangan full-stack web
+- Kolaborasi tim dan manajemen proyek
+- Pemecahan masalah dunia nyata
+- Kualitas kode dan dokumentasi
+- Prinsip desain database
+- Desain antarmuka pengguna
+- Implementasi keamanan
+- Optimasi performa
+
+## 🔮 Perbaikan Masa Depan
+
+- Registrasi pengguna dan portal pelanggan
+- Integrasi gateway pembayaran
+- Notifikasi email
+- Pengembangan aplikasi mobile
+- Fitur pelaporan lanjutan
+- Batasan rate API
+- Dukungan multi-bahasa
+
+## 📚 Dokumentasi
+
+- [Dokumentasi Lengkap](docs/DokumentasiLengkap.md)
+- [Dokumentasi Database](docs/LRS_Database.md)
+- [Penjelasan Backend](docs/PenjelasanBackend.md)
+- [Penjelasan Frontend](docs/PenjelasanFrontend.md)
+- [Referensi Cepat](docs/QuickReference.md)
+
+---
+
+**Dikembangkan sebagai proyek mahasiswa untuk mendemonstrasikan kompetensi pengembangan web.**
 - ✅ **Form validation feedback real-time** (HTML5 + Bootstrap CSS)
 - ✅ Bootstrap Icons CDN (1.10.5)
 
@@ -801,30 +857,7 @@ Proyek ini dibuat untuk keperluan pendidikan dan dapat digunakan secara bebas se
 
 ---
 
-## 📚 Dokumentasi Tambahan
-
-Untuk dokumentasi lebih detail, lihat file-file berikut:
-
-- **Backend Documentation:** `docs/PenjelasanBackend.md`
-  - Architecture & database design
-  - ORM relationships
-  - Controllers & business logic
-  - API routes documentation
-  - Seeding & factories
-
-- **Frontend Documentation:** `docs/PenjelasanFrontend.md`
-  - Master layout structure
-  - Frontend-backend flow
-  - Dashboard mechanics
-  - CRUD operations flow
-  - Performance dengan 200+ data
-  - Testing guidelines
-
-- **API Routes:** Lihat `routes/web.php`
-
----
-
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 **Q: Gambar destinasi tidak muncul?**  
 A: Pastikan image_url di database valid dari Unsplash CDN. Check: `images.unsplash.com/photo-[ID]`
